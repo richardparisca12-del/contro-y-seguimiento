@@ -3,9 +3,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# Copiar solo package.json para resolver e instalar dependencias limpias dentro del contenedor
+COPY package.json ./
+RUN npm install
 
+# Copiar el código fuente y compilar el frontend
 COPY . .
 RUN npm run build
 
