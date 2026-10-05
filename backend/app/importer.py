@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from app.models import Funcionario
+from app.database import init_db
 
 logger = logging.getLogger("minjuventud-importer")
 
@@ -95,6 +96,7 @@ def load_sheet_with_header_detection(excel_file: Any, sheet_name: str) -> pd.Dat
         df = raw_df.iloc[header_row_idx + 1:].copy()
         df.columns = headers
         df = df.dropna(how="all").reset_index(drop=True)
+        logger.info(f"Hoja '{sheet_name}': encabezados encontrados en fila {header_row_idx + 1}. Filas de datos: {len(df)}")
         return df
 
     # Si no se detectó un membrete, usar la primera fila como encabezado estándar
@@ -102,18 +104,34 @@ def load_sheet_with_header_detection(excel_file: Any, sheet_name: str) -> pd.Dat
     return raw_df.iloc[1:].dropna(how="all").reset_index(drop=True)
 
 
-def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int]:
+def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int, int, List[str]]:
     """
     Inserta o actualiza un lote de registros con MySQL ON DUPLICATE KEY UPDATE.
+    Retorna (insertados, actualizados, errores, lista_errores).
     """
     if not records:
-        return 0, 0
+        return 0, 0, 0, []
 
     inserted_count = 0
-    batch_size = 200
+    error_count = 0
+    detalles_errores = []
 
-    for i in range(0, len(records), batch_size):
-        batch = records[i:i + batch_size]
+    # 1. Asegurar que las tablas existan siempre
+    try:
+        init_db()
+    except Exception as e:
+        logger.warning(f"Aviso de init_db: {e}")
+
+    # 2. Desduplicar registros en memoria por (cedula, categoria) para evitar errores en lotes
+    dedup_dict = {}
+    for r in records:
+        key = (r["cedula"], r["categoria"])
+        dedup_dict[key] = r
+    unique_records = list(dedup_dict.values())
+
+    batch_size = 100
+    for i in range(0, len(unique_records), batch_size):
+        batch = unique_records[i:i + batch_size]
         try:
             stmt = mysql_insert(Funcionario).values(batch)
             update_dict = {
@@ -133,10 +151,10 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
         except Exception as e:
             db.rollback()
             logger.warning(f"Falla en lote de {len(batch)} registros: {e}. Reintentando uno por uno...")
-            # Fallback registro a registro para no perder datos válidos
+            # Fallback registro a registro para salvar todos los datos posibles
             for item in batch:
                 try:
-                    s = mysql_insert(Funcionario).values([item])
+                    s = mysql_insert(Funcionario).values(item)
                     u = {
                         "apellido_nombre": s.inserted.apellido_nombre,
                         "cargo": s.inserted.cargo,
@@ -152,9 +170,13 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
                     inserted_count += 1
                 except Exception as ex_single:
                     db.rollback()
-                    logger.error(f"Error insertando registro {item.get('cedula')}: {ex_single}")
+                    error_count += 1
+                    err_msg = f"Cédula {item.get('cedula', '?')}: {str(ex_single)}"
+                    logger.error(err_msg)
+                    if len(detalles_errores) < 15:
+                        detalles_errores.append(err_msg)
 
-    return inserted_count, 0
+    return inserted_count, 0, error_count, detalles_errores
 
 
 def process_excel_sheet(
@@ -215,16 +237,17 @@ def process_excel_sheet(
             parroquia = clean_text(row.get(cols_map.get("parroquia"))) if "parroquia" in cols_map else None
             centro = clean_text(row.get(cols_map.get("centro_votacion"))) if "centro_votacion" in cols_map else None
 
+            # Límites defensivos para asegurar compatibilidad total con MySQL
             record = {
-                "cedula": cedula_clean,
+                "cedula": cedula_clean[:30],
                 "categoria": categoria,
-                "apellido_nombre": nombre_clean,
-                "cargo": cargo or None,
-                "unidad_adscripcion": unidad or None,
-                "estado": estado or None,
-                "municipio": municipio or None,
-                "parroquia": parroquia or None,
-                "centro_votacion": centro or None,
+                "apellido_nombre": nombre_clean[:250],
+                "cargo": cargo[:300] if cargo else None,
+                "unidad_adscripcion": unidad[:350] if unidad else None,
+                "estado": estado[:120] if estado else None,
+                "municipio": municipio[:120] if municipio else None,
+                "parroquia": parroquia[:120] if parroquia else None,
+                "centro_votacion": centro[:500] if centro else None,
                 "numero_orden": numero_orden
             }
             records_to_upsert.append(record)
@@ -234,8 +257,10 @@ def process_excel_sheet(
             detalles_errores.append(f"Fila {fila_num}: Error al parsear datos - {str(e)}")
 
     if records_to_upsert:
-        ins, act = upsert_records(records_to_upsert, db)
+        ins, act, err_db, detalles_db = upsert_records(records_to_upsert, db)
         insertados = ins
+        errores += err_db
+        detalles_errores.extend(detalles_db)
 
     return insertados, actualizados, errores, detalles_errores[:20]
 
@@ -244,6 +269,12 @@ def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
     """
     Lee las 4 pestañas requeridas del archivo Excel detectando membretes institucionales.
     """
+    # Garantizar que las tablas existan en MySQL
+    try:
+        init_db()
+    except Exception as e:
+        logger.warning(f"init_db check: {e}")
+
     excel_file = io.BytesIO(file_bytes)
     xl = pd.ExcelFile(excel_file, engine="openpyxl")
     hojas_encontradas = xl.sheet_names
@@ -274,7 +305,6 @@ def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
             continue
 
         try:
-            # Detección inteligente de encabezados saltando logos y membretes
             df = load_sheet_with_header_detection(excel_file, sheet_name)
             ins, act, err, detalles = process_excel_sheet(df, cat, db)
 
@@ -303,9 +333,11 @@ def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
                 "detalles_errores": [f"Error al procesar hoja: {str(e)}"]
             })
 
+    mensaje = f"Procesamiento finalizado. {total_ins} registros cargados exitosamente." if total_ins > 0 else "No se pudieron insertar registros. Revise los detalles de error."
+
     return {
-        "success": True,
-        "mensaje": f"Procesamiento finalizado. {total_ins} registros cargados exitosamente.",
+        "success": total_ins > 0,
+        "mensaje": mensaje,
         "total_procesados": total_proc,
         "total_insertados": total_ins,
         "total_actualizados": total_act,

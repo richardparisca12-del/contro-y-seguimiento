@@ -31,13 +31,17 @@ app.include_router(upload.router)
 
 @app.on_event("startup")
 def startup_event():
+    import time
     logger.info("Iniciando aplicación y verificando tablas en MySQL...")
-    try:
-        init_db()
-        logger.info("Base de datos y tablas inicializadas correctamente.")
-    except Exception as e:
-        logger.error(f"Aviso de conexión inicial a MySQL: {e}")
-        logger.info("Asegúrese de que el servicio MySQL esté corriendo en localhost:3306")
+    for attempt in range(1, 11):
+        try:
+            init_db()
+            logger.info("Base de datos y tablas inicializadas correctamente.")
+            return
+        except Exception as e:
+            logger.warning(f"Intento {attempt}/10 de conexión a MySQL: {e}. Reintentando en 2s...")
+            time.sleep(2)
+    logger.error("No se pudo inicializar la base de datos tras 10 intentos.")
 
 
 @app.get("/")
