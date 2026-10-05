@@ -20,6 +20,28 @@ Este script:
 
 ---
 
+## 🐳 Despliegue con Docker (Servidor o Producción)
+
+El proyecto incluye configuración completa para **Docker y Docker Compose**, adaptado para no entrar en conflicto con puertos ya utilizados en su servidor:
+
+* **Iniciar en 1 Clic (Windows):** Ejecute [`iniciar_docker.bat`](file:///c:/Users/rparisca/Documents/control-y-seguimiento/iniciar_docker.bat)
+* **Iniciar en Linux / VPS:**
+  ```bash
+  chmod +x iniciar_docker.sh && ./iniciar_docker.sh
+  ```
+  O directamente con:
+  ```bash
+  docker compose up -d --build
+  ```
+
+### Puertos en Docker
+* **Frontend Web (Nginx + React):** [http://localhost:3085](http://localhost:3085)
+* **Backend API (FastAPI):** [http://localhost:8005/docs](http://localhost:8005/docs)
+* **MySQL Interno:** Red aislada `minjuventud_network` (puerto externo: `33065`).
+* *(Variables editables en [`.env.docker`](file:///c:/Users/rparisca/Documents/control-y-seguimiento/.env.docker))*.
+
+---
+
 ## 🛠️ Stack Tecnológico
 
 | Capa | Tecnología | Descripción |

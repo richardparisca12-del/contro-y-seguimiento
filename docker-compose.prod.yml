@@ -1,0 +1,62 @@
+# Despliegue directo descargando las imágenes precompiladas desde GitHub Container Registry (GHCR)
+# Uso en el servidor: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  db:
+    image: mariadb:10.4
+    container_name: minjuventud-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DB_NAME:-minjuventud}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_EXTERNAL_PORT:-33065}:3306"
+    networks:
+      - minjuventud-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root123}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ghcr.io/richardparisca12-del/contro-y-seguimiento-backend:latest
+    container_name: minjuventud-backend
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
+      DB_NAME: ${DB_NAME:-minjuventud}
+      SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-admin123}
+      SECRET_KEY: ${SECRET_KEY:-minjuventud_jwt_secret_key_prod_2026}
+    ports:
+      - "${BACKEND_PORT:-8005}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - minjuventud-net
+
+  frontend:
+    image: ghcr.io/richardparisca12-del/contro-y-seguimiento-frontend:latest
+    container_name: minjuventud-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-3085}:80"
+    depends_on:
+      - backend
+    networks:
+      - minjuventud-net
+
+volumes:
+  mysql_data:
+    name: minjuventud_mysql_data
+
+networks:
+  minjuventud-net:
+    name: minjuventud_network
+    driver: bridge

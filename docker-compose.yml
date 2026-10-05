@@ -1,0 +1,67 @@
+services:
+  # 1. Base de datos MySQL / MariaDB
+  db:
+    image: mariadb:10.4
+    container_name: minjuventud-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${DB_NAME:-minjuventud}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      # Puerto expuesto al host (opcional, por defecto 33065 para evitar colisiones con 3306)
+      - "${MYSQL_EXTERNAL_PORT:-33065}:3306"
+    networks:
+      - minjuventud-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root123}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 2. Servidor Backend API (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: minjuventud-backend
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
+      DB_NAME: ${DB_NAME:-minjuventud}
+      SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-admin123}
+      SECRET_KEY: ${SECRET_KEY:-minjuventud_jwt_secret_key_prod_2026}
+    ports:
+      - "${BACKEND_PORT:-8005}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - minjuventud-net
+
+  # 3. Servidor Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: minjuventud-frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-3085}:80"
+    depends_on:
+      - backend
+    networks:
+      - minjuventud-net
+
+volumes:
+  mysql_data:
+    name: minjuventud_mysql_data
+
+networks:
+  minjuventud-net:
+    name: minjuventud_network
+    driver: bridge

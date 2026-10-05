@@ -1,12 +1,12 @@
 import React from 'react';
-import { UploadCloud, LogOut, Shield, Database } from 'lucide-react';
+import { UploadCloud, LogOut } from 'lucide-react';
 
 export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
   return (
     <header style={{
-      background: 'rgba(4, 18, 43, 0.88)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid var(--border-color)',
+      background: '#ffffff',
+      borderBottom: '1px solid #e2e8f0',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
@@ -15,51 +15,50 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: '14px',
-        paddingBottom: '14px',
+        paddingTop: '12px',
+        paddingBottom: '12px',
       }}>
-        {/* Logo e Identidad */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            padding: '6px 14px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <img
-              src="/logo-minjuventud.png"
-              alt="Ministerio del Poder Popular para la Juventud"
-              style={{
-                height: '42px',
-                maxWidth: '220px',
-                objectFit: 'contain',
-                display: 'block'
-              }}
-            />
-          </div>
-          <div>
+        {/* Logo e Identidad Institucional */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <img
+            src="/logo-minjuventud.png"
+            alt="Ministerio del Poder Popular para la Juventud"
+            style={{
+              height: '46px',
+              maxWidth: '240px',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+
+          <div style={{ borderLeft: '1.5px solid #cbd5e1', paddingLeft: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h1 style={{ fontSize: '1.15rem', color: '#f8fafc', lineHeight: 1.1 }}>
+              <h1 style={{
+                fontSize: '1.15rem',
+                color: '#07367E',
+                fontWeight: 800,
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em'
+              }}>
                 Control y Seguimiento de Personal
               </h1>
               <span style={{
                 fontSize: '0.68rem',
-                padding: '2px 8px',
+                padding: '3px 8px',
                 borderRadius: '9999px',
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: '#34d399',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: '#ecfdf5',
+                color: '#047857',
+                border: '1px solid #a7f3d0',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px'
+                gap: '5px',
+                fontWeight: 700
               }}>
                 <span className="pulse-indicator"></span>
                 MySQL Activo
               </span>
             </div>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
               Ministerio del Poder Popular para la Juventud
             </p>
           </div>
@@ -69,8 +68,22 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={onOpenCreate}
-            className="btn btn-secondary"
-            style={{ fontSize: '0.85rem', padding: '9px 14px' }}
+            style={{
+              background: '#f8fafc',
+              color: '#07367E',
+              border: '1.5px solid #07367E',
+              fontSize: '0.84rem',
+              padding: '9px 14px',
+              fontWeight: 700,
+              borderRadius: '10px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#eef2ff'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
             title="Registrar funcionario manualmente"
           >
             <span>+ Nuevo Funcionario</span>
@@ -87,11 +100,28 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
 
           <button
             onClick={onLogout}
-            className="btn btn-secondary"
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '10px',
+              padding: '9px 12px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#fee2e2';
+              e.currentTarget.style.borderColor = '#fca5a5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f8fafc';
+              e.currentTarget.style.borderColor = '#cbd5e1';
+            }}
             title="Cerrar Sesión"
-            style={{ padding: '9px 12px' }}
           >
-            <LogOut size={17} color="var(--text-muted)" />
+            <LogOut size={17} color="#475569" />
           </button>
         </div>
       </div>
