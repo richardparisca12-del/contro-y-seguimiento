@@ -24,6 +24,6 @@ echo ==============================================================
 echo   ¡Contenedores iniciados exitosamente!
 echo   Frontend: http://localhost:3085
 echo   Backend API: http://localhost:8005/docs
-echo   Contraseña de acceso: admin123
+echo   Contraseña de acceso: Minj2026!
 echo ==============================================================
 pause

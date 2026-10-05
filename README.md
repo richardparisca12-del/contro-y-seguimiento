@@ -16,7 +16,7 @@ Este script:
 3. Inicia la interfaz Frontend (React + Vite en `http://localhost:5173`).
 4. Abre automáticamente su navegador web predeterminado.
 
-> **Contraseña de Acceso al Sistema:** `admin123`
+> **Contraseña de Acceso al Sistema:** `Minj2026!`
 
 ---
 
@@ -105,7 +105,7 @@ Si desea ejecutar backend y frontend por separado:
 ### Backend
 ```bash
 cd backend
-# Variables en backend/.env (por defecto: DB_HOST=127.0.0.1, DB_NAME=minjuventud, SYSTEM_PASSWORD=admin123)
+# Variables en backend/.env (por defecto: DB_HOST=127.0.0.1, DB_NAME=minjuventud, SYSTEM_PASSWORD=Minj2026!)
 python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 

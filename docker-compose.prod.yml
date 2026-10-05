@@ -31,7 +31,7 @@ services:
       DB_USER: root
       DB_PASSWORD: ${DB_ROOT_PASSWORD:-root123}
       DB_NAME: ${DB_NAME:-minjuventud}
-      SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-admin123}
+      SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-Minj2026!}
       SECRET_KEY: ${SECRET_KEY:-minjuventud_jwt_secret_key_prod_2026}
     ports:
       - "${BACKEND_PORT:-8005}:8000"

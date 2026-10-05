@@ -153,9 +153,6 @@ export default function Login({ onLoginSuccess }) {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <div style={{ marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-              Clave predeterminada: <code style={{ color: '#93c5fd', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: '4px' }}>admin123</code>
-            </div>
           </div>
 
           <button

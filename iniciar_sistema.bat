@@ -28,7 +28,7 @@ echo.
 echo ==============================================================
 echo   ¡Sistema iniciado correctamente!
 echo   Acceda en su navegador: http://localhost:5173
-echo   Contraseña de acceso: admin123
+echo   Contraseña de acceso: Minj2026!
 echo ==============================================================
 start http://localhost:5173
 pause

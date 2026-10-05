@@ -11,7 +11,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "minjuventud_secret_key_super_segura_2026")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "720"))
-SYSTEM_PASSWORD = os.getenv("SYSTEM_PASSWORD", "admin123")
+SYSTEM_PASSWORD = os.getenv("SYSTEM_PASSWORD", "Minj2026!")
 
 security = HTTPBearer(auto_error=False)
 
