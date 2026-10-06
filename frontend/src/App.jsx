@@ -8,12 +8,22 @@ import FuncionarioDetailModal from './components/FuncionarioDetailModal';
 import CreateFuncionarioModal from './components/CreateFuncionarioModal';
 import UploadModal from './components/UploadModal';
 import Login from './components/Login';
+import ConsultaCedulaView from './components/ConsultaCedulaView';
 import { statsApi, funcionariosApi } from './api';
 import { exportToExcel, exportToPdf } from './utils/exportUtils';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('minjuventud_token');
+  });
+
+  // Vista activa: por defecto 'consulta' (requerimiento de pantalla principal sin botón analytics)
+  // Valores: 'consulta' | 'login' | 'analytics'
+  const [currentView, setCurrentView] = useState(() => {
+    if (window.location.hash === '#analytics' || window.location.hash === '#admin') {
+      return localStorage.getItem('minjuventud_token') ? 'analytics' : 'login';
+    }
+    return 'consulta';
   });
 
   const [stats, setStats] = useState(null);
@@ -46,16 +56,40 @@ export default function App() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedFuncionario, setSelectedFuncionario] = useState(null);
 
-  // Logout listener
+  // Listener para sincronizar hash de la URL (#analytics, #consulta, etc.)
   useEffect(() => {
-    const handleLogout = () => setIsAuthenticated(false);
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#analytics' || hash === '#admin') {
+        if (localStorage.getItem('minjuventud_token')) {
+          setCurrentView('analytics');
+        } else {
+          setCurrentView('login');
+        }
+      } else if (hash === '#login') {
+        setCurrentView('login');
+      } else {
+        setCurrentView('consulta');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Logout listener de api interceptor
+  useEffect(() => {
+    const handleLogout = () => {
+      setIsAuthenticated(false);
+      setCurrentView('consulta');
+      window.location.hash = '';
+    };
     window.addEventListener('auth-logout', handleLogout);
     return () => window.removeEventListener('auth-logout', handleLogout);
   }, []);
 
-  // Carga inicial de estadísticas y opciones de filtros
+  // Carga inicial de estadísticas y opciones de filtros (solo cuando está en vista analytics)
   const loadStatsAndOptions = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || currentView !== 'analytics') return;
     try {
       const [statsRes, filtersRes] = await Promise.all([
         statsApi.getStats(),
@@ -66,15 +100,17 @@ export default function App() {
     } catch (err) {
       console.error('Error al cargar estadísticas o filtros:', err);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentView]);
 
   useEffect(() => {
-    loadStatsAndOptions();
-  }, [loadStatsAndOptions]);
+    if (isAuthenticated && currentView === 'analytics') {
+      loadStatsAndOptions();
+    }
+  }, [isAuthenticated, currentView, loadStatsAndOptions]);
 
   // Carga de lista de funcionarios con filtros y paginación
   const loadFuncionarios = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || currentView !== 'analytics') return;
     setLoading(true);
     try {
       const params = {
@@ -97,16 +133,18 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, page, pageSize, filters]);
+  }, [isAuthenticated, currentView, page, pageSize, filters]);
 
   useEffect(() => {
-    loadFuncionarios();
-  }, [loadFuncionarios]);
+    if (isAuthenticated && currentView === 'analytics') {
+      loadFuncionarios();
+    }
+  }, [isAuthenticated, currentView, loadFuncionarios]);
 
   // Manejador de cambio de filtros individuales
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    setPage(1); // Reiniciar a página 1 al filtrar
+    setPage(1);
   };
 
   // Manejador de selección de categoría desde las tarjetas superiores
@@ -127,10 +165,9 @@ export default function App() {
     setPage(1);
   };
 
-  // Exportar a Excel (todos los registros que coinciden con los filtros actuales)
+  // Exportar a Excel
   const handleExportExcel = async () => {
     try {
-      // Pedir hasta 10000 registros para exportar todo el conjunto filtrado
       const params = {
         page: 1,
         page_size: 10000,
@@ -146,12 +183,11 @@ export default function App() {
       exportToExcel(dataToExport);
     } catch (err) {
       console.error('Error al exportar a Excel:', err);
-      // Fallback a los datos actuales
       exportToExcel(funcionarios);
     }
   };
 
-  // Exportar a PDF con membrete
+  // Exportar a PDF
   const handleExportPdf = async () => {
     try {
       const params = {
@@ -176,18 +212,52 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('minjuventud_token');
     setIsAuthenticated(false);
+    setCurrentView('consulta');
+    window.location.hash = '';
   };
 
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  const handleGoToAdmin = () => {
+    if (isAuthenticated) {
+      setCurrentView('analytics');
+      window.location.hash = '#analytics';
+    } else {
+      setCurrentView('login');
+      window.location.hash = '#login';
+    }
+  };
+
+  const handleBackToConsulta = () => {
+    setCurrentView('consulta');
+    window.location.hash = '';
+  };
+
+  // VISTA POR DEFECTO: Consulta pública y actualización electoral por cédula
+  if (currentView === 'consulta') {
+    return <ConsultaCedulaView onGoToAdmin={handleGoToAdmin} />;
   }
 
+  // VISTA DE LOGIN: Acceso seguro al Panel de Analytics
+  if (currentView === 'login' || !isAuthenticated) {
+    return (
+      <Login
+        onLoginSuccess={() => {
+          setIsAuthenticated(true);
+          setCurrentView('analytics');
+          window.location.hash = '#analytics';
+        }}
+        onBackToConsulta={handleBackToConsulta}
+      />
+    );
+  }
+
+  // VISTA DEL PANEL DE ANALYTICS Y CONTROL DE PERSONAL
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar
         onOpenUpload={() => setUploadModalOpen(true)}
         onOpenCreate={() => setCreateModalOpen(true)}
         onLogout={handleLogout}
+        onGoToConsulta={handleBackToConsulta}
       />
 
       <main className="container" style={{ flex: 1, paddingBottom: '40px' }}>

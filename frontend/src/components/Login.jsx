@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, ShieldCheck, AlertCircle } from 'lucide-react';
 import { authApi } from '../api';
 
-export default function Login({ onLoginSuccess }) {
+export default function Login({ onLoginSuccess, onBackToConsulta }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -158,21 +158,32 @@ export default function Login({ onLoginSuccess }) {
           <button
             type="submit"
             className="btn btn-primary"
-            style={{ width: '100%', height: '48px', fontSize: '1rem' }}
+            style={{ width: '100%', height: '48px', fontSize: '1rem', marginBottom: onBackToConsulta ? '10px' : '0' }}
             disabled={loading}
           >
             {loading ? (
-              <span>Verificando acceso...</span>
+              <span>Verificando credenciales...</span>
             ) : (
               <>
                 <Lock size={18} />
-                <span>Ingresar al Sistema</span>
+                <span>Ingresar al Panel de Analytics</span>
               </>
             )}
           </button>
+
+          {onBackToConsulta && (
+            <button
+              type="button"
+              onClick={onBackToConsulta}
+              className="btn btn-secondary"
+              style={{ width: '100%', height: '44px', fontSize: '0.9rem' }}
+            >
+              <span>← Volver a Consulta de Cédula</span>
+            </button>
+          )}
         </form>
 
-        <div style={{ marginTop: '30px', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '18px' }}>
+        <div style={{ marginTop: '26px', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
             Ministerio del Poder Popular para la Juventud © {new Date().getFullYear()}
           </span>

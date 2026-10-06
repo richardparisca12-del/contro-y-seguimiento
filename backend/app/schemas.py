@@ -102,3 +102,38 @@ class FilterOptions(BaseModel):
     municipios: List[str]
     parroquias: List[str]
     unidades: List[str]
+
+
+class ConsultaRequest(BaseModel):
+    cedula: str
+
+
+class FuncionarioConsultaItem(BaseModel):
+    id: int
+    cedula: str
+    apellido_nombre: str
+    categoria: str
+    cargo: Optional[str] = None
+    unidad_adscripcion: Optional[str] = None
+    estado: Optional[str] = None
+    municipio: Optional[str] = None
+    parroquia: Optional[str] = None
+    centro_votacion: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ConsultaResponse(BaseModel):
+    encontrado: bool
+    mensaje: str
+    total_registros: int
+    registros: List[FuncionarioConsultaItem]
+
+
+class ConsultaUpdateRequest(BaseModel):
+    estado: Optional[str] = None
+    municipio: Optional[str] = None
+    parroquia: Optional[str] = None
+    centro_votacion: Optional[str] = None
+

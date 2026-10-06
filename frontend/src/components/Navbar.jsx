@@ -1,7 +1,6 @@
-import React from 'react';
-import { UploadCloud, LogOut } from 'lucide-react';
+import { UploadCloud, LogOut, Vote, ArrowLeft } from 'lucide-react';
 
-export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
+export default function Navbar({ onOpenUpload, onOpenCreate, onLogout, onGoToConsulta }) {
   return (
     <header style={{
       background: '#ffffff',
@@ -40,7 +39,7 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em'
               }}>
-                Control y Seguimiento de Personal
+                Panel de Analytics - Control de Personal
               </h1>
               <span style={{
                 fontSize: '0.68rem',
@@ -66,6 +65,32 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout }) {
 
         {/* Acciones de Cabecera */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {onGoToConsulta && (
+            <button
+              onClick={onGoToConsulta}
+              style={{
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1.5px solid #bfdbfe',
+                fontSize: '0.84rem',
+                padding: '9px 14px',
+                fontWeight: 700,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}
+              title="Ir a la pantalla de consulta de cédula"
+            >
+              <ArrowLeft size={16} />
+              <span>Consulta Cédula</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenCreate}
             style={{

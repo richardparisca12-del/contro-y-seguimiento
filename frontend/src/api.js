@@ -50,4 +50,9 @@ export const uploadApi = {
   }),
 };
 
+export const consultaApi = {
+  consultarCedula: (cedula) => api.post('/api/consulta', { cedula }),
+  actualizarDatosElectorales: (id, data) => api.put(`/api/consulta/${id}`, data),
+};
+
 export default api;

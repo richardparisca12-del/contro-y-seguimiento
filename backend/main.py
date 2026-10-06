@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import auth, funcionarios, stats, upload
+from app.routers import auth, funcionarios, stats, upload, consulta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("minjuventud-api")
@@ -23,6 +23,7 @@ app.add_middleware(
 )
 
 # Registrar routers
+app.include_router(consulta.router)
 app.include_router(auth.router)
 app.include_router(funcionarios.router)
 app.include_router(stats.router)
