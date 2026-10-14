@@ -278,6 +278,7 @@ export default function StatsCards({ stats, selectedCategoria, onSelectCategoria
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
