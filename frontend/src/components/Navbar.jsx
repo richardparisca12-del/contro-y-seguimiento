@@ -1,6 +1,6 @@
-import { UploadCloud, LogOut, Vote, ArrowLeft } from 'lucide-react';
+import { UploadCloud, LogOut, Vote, ArrowLeft, Trash2 } from 'lucide-react';
 
-export default function Navbar({ onOpenUpload, onOpenCreate, onLogout, onGoToConsulta }) {
+export default function Navbar({ onOpenUpload, onOpenCreate, onOpenClearData, onLogout, onGoToConsulta }) {
   return (
     <header style={{
       background: '#ffffff',
@@ -122,6 +122,38 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onLogout, onGoToCon
             <UploadCloud size={18} />
             <span>Carga Masiva Excel</span>
           </button>
+
+          {onOpenClearData && (
+            <button
+              onClick={onOpenClearData}
+              style={{
+                background: '#fef2f2',
+                color: '#dc2626',
+                border: '1.5px solid #fecaca',
+                fontSize: '0.84rem',
+                padding: '9px 14px',
+                fontWeight: 700,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#fee2e2';
+                e.currentTarget.style.borderColor = '#f87171';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#fef2f2';
+                e.currentTarget.style.borderColor = '#fecaca';
+              }}
+              title="Eliminar datos de personal y reiniciar estadísticas"
+            >
+              <Trash2 size={16} />
+              <span>Eliminar Datos</span>
+            </button>
+          )}
 
           <button
             onClick={onLogout}

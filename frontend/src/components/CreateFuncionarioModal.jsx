@@ -135,8 +135,8 @@ export default function CreateFuncionarioModal({ onClose, onSuccess }) {
                 onChange={(e) => handleChange('ente', e.target.value)}
                 required
               >
-                <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
-                <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
+                <option value="MINISTERIO DE LA JUVENTUD">🏛️ MinJuventud</option>
+                <option value="INJ">🏢 INJ</option>
               </select>
             </div>
 

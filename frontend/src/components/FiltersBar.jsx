@@ -116,14 +116,9 @@ export default function FiltersBar({
               background: filters.ente ? 'rgba(59, 130, 246, 0.12)' : undefined
             }}
           >
-            <option value="">Todos los Entes (Ministerio e INJ)</option>
-            <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
-            <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
-            {(filterOptions.entes || [])
-              .filter(e => e !== 'MINISTERIO DE LA JUVENTUD' && e !== 'INJ')
-              .map((ente) => (
-                <option key={ente} value={ente}>{ente}</option>
-              ))}
+            <option value="">Todos los Entes</option>
+            <option value="MINISTERIO DE LA JUVENTUD">🏛️ MinJuventud</option>
+            <option value="INJ">🏢 INJ</option>
           </select>
         </div>
 

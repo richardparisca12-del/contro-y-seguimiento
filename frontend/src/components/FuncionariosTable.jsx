@@ -119,18 +119,23 @@ export default function FuncionariosTable({
                     {item.apellido_nombre}
                   </td>
                   <td>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      whiteSpace: 'nowrap',
-                      background: item.ente === 'INJ' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                      color: item.ente === 'INJ' ? '#34d399' : '#93c5fd',
-                      border: item.ente === 'INJ' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
-                    }}>
-                      {item.ente === 'INJ' ? '🏢 INJ' : '🏛️ MinJuventud'}
-                    </span>
+                    {(() => {
+                      const isInj = item.ente === 'INJ' || (item.ente && (item.ente.toUpperCase().includes('INJ') || item.ente.toUpperCase().includes('INSTITUTO')));
+                      return (
+                        <span style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          whiteSpace: 'nowrap',
+                          background: isInj ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                          color: isInj ? '#34d399' : '#93c5fd',
+                          border: isInj ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
+                        }}>
+                          {isInj ? '🏢 INJ' : '🏛️ MinJuventud'}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td>
                     <span className={getBadgeClass(item.categoria)}>

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func, distinct
+from sqlalchemy import or_, and_, func, distinct
 from typing import Optional, List
 from app.database import get_db
 from app.models import Funcionario
@@ -8,6 +8,15 @@ from app.schemas import PaginatedFuncionarios, FuncionarioResponse, FilterOption
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/api/funcionarios", tags=["Funcionarios"])
+
+
+def normalize_ente(ente_val: Optional[str]) -> str:
+    if not ente_val:
+        return "MINISTERIO DE LA JUVENTUD"
+    s = str(ente_val).strip().upper()
+    if "INJ" in s or "INSTITUTO" in s:
+        return "INJ"
+    return "MINISTERIO DE LA JUVENTUD"
 
 
 @router.get("", response_model=PaginatedFuncionarios)
@@ -37,7 +46,25 @@ def get_funcionarios(
         )
 
     if ente:
-        query = query.filter(Funcionario.ente == ente)
+        ente_norm = normalize_ente(ente)
+        if ente_norm == "INJ":
+            query = query.filter(
+                or_(
+                    Funcionario.ente == "INJ",
+                    Funcionario.ente.ilike("%INJ%"),
+                    Funcionario.ente.ilike("%INSTITUTO%")
+                )
+            )
+        else:
+            query = query.filter(
+                or_(
+                    Funcionario.ente == "MINISTERIO DE LA JUVENTUD",
+                    and_(
+                        Funcionario.ente.notilike("%INJ%"),
+                        Funcionario.ente.notilike("%INSTITUTO%")
+                    )
+                )
+            )
     if categoria:
         query = query.filter(Funcionario.categoria == categoria)
     if estado:
@@ -71,21 +98,8 @@ def get_filter_options(
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user)
 ):
-    """Devuelve listas únicas para llenar selectores de filtros."""
-    db_entes = [
-        row[0] for row in db.query(distinct(Funcionario.ente))
-        .filter(Funcionario.ente.isnot(None), Funcionario.ente != "")
-        .order_by(Funcionario.ente).all()
-    ]
-    # Asegurar entes base oficiales
-    base_entes = ["MINISTERIO DE LA JUVENTUD", "INJ"]
-    entes_set = []
-    for e in base_entes:
-        if e not in entes_set:
-            entes_set.append(e)
-    for e in db_entes:
-        if e and e not in entes_set:
-            entes_set.append(e)
+    # Únicamente los dos entes oficiales: MinJuventud e INJ
+    entes_set = ["MINISTERIO DE LA JUVENTUD", "INJ"]
 
     categorias = [
         row[0] for row in db.query(distinct(Funcionario.categoria))
@@ -141,7 +155,7 @@ def create_funcionario(
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user)
 ):
-    ente_valor = (payload.ente or "MINISTERIO DE LA JUVENTUD").strip().upper()
+    ente_valor = normalize_ente(payload.ente)
 
     # Verificar si ya existe con esa cédula, categoría y ente
     existente = db.query(Funcionario).filter(
@@ -186,14 +200,53 @@ def update_funcionario(
         raise HTTPException(status_code=404, detail="Funcionario no encontrado")
 
     update_data = payload.dict(exclude_unset=True)
+    if "ente" in update_data and update_data["ente"] is not None:
+        update_data["ente"] = normalize_ente(update_data["ente"])
     for field, value in update_data.items():
-        if value is not None and isinstance(value, str):
+        if field != "ente" and value is not None and isinstance(value, str):
             value = value.strip().upper()
         setattr(funcionario, field, value)
 
     db.commit()
     db.refresh(funcionario)
     return funcionario
+
+
+@router.delete("/clear")
+def clear_funcionarios(
+    ente: Optional[str] = Query(None, description="Filtrar por ente a eliminar (INJ, MINISTERIO DE LA JUVENTUD o None para todos)"),
+    db: Session = Depends(get_db),
+    _user: dict = Depends(get_current_user)
+):
+    """Elimina registros de personal (del ente especificado o todos si es None)."""
+    query = db.query(Funcionario)
+    if ente:
+        ente_norm = normalize_ente(ente)
+        if ente_norm == "INJ":
+            query = query.filter(
+                or_(
+                    Funcionario.ente == "INJ",
+                    Funcionario.ente.ilike("%INJ%"),
+                    Funcionario.ente.ilike("%INSTITUTO%")
+                )
+            )
+        else:
+            query = query.filter(
+                or_(
+                    Funcionario.ente == "MINISTERIO DE LA JUVENTUD",
+                    and_(
+                        Funcionario.ente.notilike("%INJ%"),
+                        Funcionario.ente.notilike("%INSTITUTO%")
+                    )
+                )
+            )
+
+    deleted_count = query.delete(synchronize_session=False)
+    db.commit()
+    return {
+        "message": f"Se eliminaron {deleted_count} registros exitosamente.",
+        "deleted_count": deleted_count
+    }
 
 
 @router.delete("/{id}")

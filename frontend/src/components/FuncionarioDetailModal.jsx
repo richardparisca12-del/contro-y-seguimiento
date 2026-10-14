@@ -7,7 +7,7 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
   const [formData, setFormData] = useState({
     cedula: funcionario?.cedula || '',
     apellido_nombre: funcionario?.apellido_nombre || '',
-    ente: funcionario?.ente || 'MINISTERIO DE LA JUVENTUD',
+    ente: (funcionario?.ente && (funcionario.ente.toUpperCase().includes('INJ') || funcionario.ente.toUpperCase().includes('INSTITUTO'))) ? 'INJ' : 'MINISTERIO DE LA JUVENTUD',
     categoria: funcionario?.categoria || 'CONTRATADO',
     cargo: funcionario?.cargo || '',
     unidad_adscripcion: funcionario?.unidad_adscripcion || '',
@@ -195,12 +195,12 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
                 </label>
                 <select
                   className="select-control"
-                  value={formData.ente}
+                  value={(formData.ente && (formData.ente.toUpperCase().includes('INJ') || formData.ente.toUpperCase().includes('INSTITUTO'))) ? 'INJ' : 'MINISTERIO DE LA JUVENTUD'}
                   onChange={(e) => handleChange('ente', e.target.value)}
                   required
                 >
-                  <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
-                  <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
+                  <option value="MINISTERIO DE LA JUVENTUD">🏛️ MinJuventud</option>
+                  <option value="INJ">🏢 INJ</option>
                 </select>
               </div>
 
@@ -380,17 +380,22 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    padding: '3px 10px',
-                    borderRadius: '6px',
-                    background: (funcionario.ente === 'INJ') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                    color: (funcionario.ente === 'INJ') ? '#34d399' : '#93c5fd',
-                    border: (funcionario.ente === 'INJ') ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
-                  }}>
-                    {funcionario.ente === 'INJ' ? '🏢 INJ (Instituto Nacional)' : '🏛️ Ministerio de la Juventud'}
-                  </span>
+                  {(() => {
+                    const isInj = funcionario.ente === 'INJ' || (funcionario.ente && (funcionario.ente.toUpperCase().includes('INJ') || funcionario.ente.toUpperCase().includes('INSTITUTO')));
+                    return (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        padding: '3px 10px',
+                        borderRadius: '6px',
+                        background: isInj ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                        color: isInj ? '#34d399' : '#93c5fd',
+                        border: isInj ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
+                      }}>
+                        {isInj ? '🏢 INJ' : '🏛️ MinJuventud'}
+                      </span>
+                    );
+                  })()}
                   <span className={`badge-category badge-${funcionario.categoria.replace(/\s+/g, '-')}`}>
                     {funcionario.categoria}
                   </span>

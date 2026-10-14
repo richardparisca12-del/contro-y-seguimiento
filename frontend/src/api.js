@@ -42,6 +42,7 @@ export const funcionariosApi = {
   create: (data) => api.post('/api/funcionarios', data),
   update: (id, data) => api.put(`/api/funcionarios/${id}`, data),
   delete: (id) => api.delete(`/api/funcionarios/${id}`),
+  clearFuncionarios: (params) => api.delete('/api/funcionarios/clear', { params }),
 };
 
 export const uploadApi = {

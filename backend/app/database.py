@@ -75,3 +75,19 @@ def init_db():
             conn.commit()
         except Exception:
             pass
+
+        try:
+            # Normalización automática en caliente de entes en la base de datos
+            conn.execute(text("""
+                UPDATE funcionarios
+                SET ente = 'INJ'
+                WHERE UPPER(ente) LIKE '%INJ%' OR UPPER(ente) LIKE '%INSTITUTO%';
+            """))
+            conn.execute(text("""
+                UPDATE funcionarios
+                SET ente = 'MINISTERIO DE LA JUVENTUD'
+                WHERE ente IS NULL OR ente = '' OR (UPPER(ente) NOT LIKE '%INJ%' AND UPPER(ente) NOT LIKE '%INSTITUTO%');
+            """))
+            conn.commit()
+        except Exception:
+            pass

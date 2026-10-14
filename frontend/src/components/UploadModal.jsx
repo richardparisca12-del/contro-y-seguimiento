@@ -60,9 +60,12 @@ export default function UploadModal({ onClose, onSuccess }) {
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
+        const d = err.response.data.detail;
+        setError(typeof d === 'string' ? d : JSON.stringify(d));
+      } else if (err.response) {
+        setError(`Ocurrió un error al procesar el archivo Excel (HTTP ${err.response.status} ${err.response.statusText || ''}). Revise los logs del backend.`);
       } else {
-        setError('Ocurrió un error al cargar o procesar el archivo Excel.');
+        setError(`No se obtuvo respuesta del servidor (${err.message}). Verifique que el backend esté activo.`);
       }
     } finally {
       setUploading(false);
@@ -240,6 +243,20 @@ export default function UploadModal({ onClose, onSuccess }) {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div style={{
+                  marginTop: '8px',
+                  fontSize: '0.74rem',
+                  color: ente === 'INJ' ? '#34d399' : '#93c5fd',
+                  background: ente === 'INJ' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: ente === 'INJ' ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(59, 130, 246, 0.25)'
+                }}>
+                  {ente === 'INJ'
+                    ? '🏢 Cargando nómina asignada a INJ (Instituto Nacional). Si algún funcionario ya existía, se reasignará a INJ automáticamente.'
+                    : '🏛️ Cargando nómina ministerial directa (MinJuventud).'}
                 </div>
               </div>
 

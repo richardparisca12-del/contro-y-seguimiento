@@ -7,6 +7,7 @@ import FuncionariosTable from './components/FuncionariosTable';
 import FuncionarioDetailModal from './components/FuncionarioDetailModal';
 import CreateFuncionarioModal from './components/CreateFuncionarioModal';
 import UploadModal from './components/UploadModal';
+import ClearDataModal from './components/ClearDataModal';
 import Login from './components/Login';
 import ConsultaCedulaView from './components/ConsultaCedulaView';
 import { statsApi, funcionariosApi } from './api';
@@ -56,6 +57,7 @@ export default function App() {
   // Modales
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [clearModalOpen, setClearModalOpen] = useState(false);
   const [selectedFuncionario, setSelectedFuncionario] = useState(null);
 
   // Listener para sincronizar hash de la URL (#analytics, #consulta, etc.)
@@ -267,6 +269,7 @@ export default function App() {
       <Navbar
         onOpenUpload={() => setUploadModalOpen(true)}
         onOpenCreate={() => setCreateModalOpen(true)}
+        onOpenClearData={() => setClearModalOpen(true)}
         onLogout={handleLogout}
         onGoToConsulta={handleBackToConsulta}
       />
@@ -340,6 +343,17 @@ export default function App() {
           funcionario={selectedFuncionario}
           onClose={() => setSelectedFuncionario(null)}
           onUpdated={() => {
+            loadStatsAndOptions();
+            loadFuncionarios();
+          }}
+        />
+      )}
+
+      {/* Modal de Eliminación de Datos */}
+      {clearModalOpen && (
+        <ClearDataModal
+          onClose={() => setClearModalOpen(false)}
+          onSuccess={() => {
             loadStatsAndOptions();
             loadFuncionarios();
           }}
