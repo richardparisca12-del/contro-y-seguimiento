@@ -26,7 +26,8 @@ COLUMN_MAPPINGS = {
     "estado": ["ESTADO", "ENTIDAD", "ESTADO_RESIDENCIA"],
     "municipio": ["MUNICIPIO"],
     "parroquia": ["PARROQUIA"],
-    "centro_votacion": ["CENTRO DE VOTACIÓN", "CENTRO DE VOTACION", "CENTRO VOTACION", "CENTRO_VOTACION", "CENTRO ELECTORAL"]
+    "centro_votacion": ["CENTRO DE VOTACIÓN", "CENTRO DE VOTACION", "CENTRO VOTACION", "CENTRO_VOTACION", "CENTRO ELECTORAL"],
+    "ente": ["ENTE", "INSTITUCION", "INSTITUCIÓN", "ORGANISMO", "ENTE ADSCRITO", "ENTIDAD ADSCRITA"]
 }
 
 
@@ -36,6 +37,17 @@ def clean_text(val: Any) -> str:
     val_str = str(val).strip()
     val_str = re.sub(r'\s+', ' ', val_str)
     return val_str.upper()
+
+
+def clean_ente(val: Any, default_ente: str = "MINISTERIO DE LA JUVENTUD") -> str:
+    if val is None or pd.isna(val) or not str(val).strip():
+        return default_ente.strip().upper()
+    val_str = str(val).strip().upper()
+    if "INJ" in val_str or "INSTITUTO" in val_str:
+        return "INJ"
+    if "MINISTERIO" in val_str or "MINJUVENTUD" in val_str:
+        return "MINISTERIO DE LA JUVENTUD"
+    return val_str
 
 
 def clean_cedula(val: Any) -> str:
@@ -122,10 +134,10 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
     except Exception as e:
         logger.warning(f"Aviso de init_db: {e}")
 
-    # 2. Desduplicar registros en memoria por (cedula, categoria) para evitar errores en lotes
+    # 2. Desduplicar registros en memoria por (cedula, categoria, ente) para evitar errores en lotes
     dedup_dict = {}
     for r in records:
-        key = (r["cedula"], r["categoria"])
+        key = (r["cedula"], r["categoria"], r.get("ente", "MINISTERIO DE LA JUVENTUD"))
         dedup_dict[key] = r
     unique_records = list(dedup_dict.values())
 
@@ -143,6 +155,7 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
                 "parroquia": stmt.inserted.parroquia,
                 "centro_votacion": stmt.inserted.centro_votacion,
                 "numero_orden": stmt.inserted.numero_orden,
+                "ente": stmt.inserted.ente,
             }
             upsert_stmt = stmt.on_duplicate_key_update(**update_dict)
             db.execute(upsert_stmt)
@@ -164,6 +177,7 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
                         "parroquia": s.inserted.parroquia,
                         "centro_votacion": s.inserted.centro_votacion,
                         "numero_orden": s.inserted.numero_orden,
+                        "ente": s.inserted.ente,
                     }
                     db.execute(s.on_duplicate_key_update(**u))
                     db.commit()
@@ -182,7 +196,8 @@ def upsert_records(records: List[Dict[str, Any]], db: Session) -> Tuple[int, int
 def process_excel_sheet(
     df: pd.DataFrame,
     categoria: str,
-    db: Session
+    db: Session,
+    default_ente: str = "MINISTERIO DE LA JUVENTUD"
 ) -> Tuple[int, int, int, List[str]]:
     """
     Procesa un DataFrame correspondiente a una hoja del Excel.
@@ -237,10 +252,15 @@ def process_excel_sheet(
             parroquia = clean_text(row.get(cols_map.get("parroquia"))) if "parroquia" in cols_map else None
             centro = clean_text(row.get(cols_map.get("centro_votacion"))) if "centro_votacion" in cols_map else None
 
+            # Ente: de la columna o del ente por defecto seleccionado en la importación
+            raw_ente = row.get(cols_map.get("ente")) if "ente" in cols_map else None
+            ente_clean = clean_ente(raw_ente, default_ente=default_ente)
+
             # Límites defensivos para asegurar compatibilidad total con MySQL
             record = {
                 "cedula": cedula_clean[:30],
                 "categoria": categoria,
+                "ente": ente_clean[:100],
                 "apellido_nombre": nombre_clean[:250],
                 "cargo": cargo[:300] if cargo else None,
                 "unidad_adscripcion": unidad[:350] if unidad else None,
@@ -265,9 +285,10 @@ def process_excel_sheet(
     return insertados, actualizados, errores, detalles_errores[:20]
 
 
-def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
+def process_full_excel(file_bytes: bytes, db: Session, default_ente: str = "MINISTERIO DE LA JUVENTUD") -> Dict[str, Any]:
     """
     Lee las 4 pestañas requeridas del archivo Excel detectando membretes institucionales.
+    Asigna el ente por defecto o detectado.
     """
     # Garantizar que las tablas existan en MySQL
     try:
@@ -306,7 +327,7 @@ def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
 
         try:
             df = load_sheet_with_header_detection(excel_file, sheet_name)
-            ins, act, err, detalles = process_excel_sheet(df, cat, db)
+            ins, act, err, detalles = process_excel_sheet(df, cat, db, default_ente=default_ente)
 
             total_hoja = len(df)
             total_proc += total_hoja
@@ -333,7 +354,7 @@ def process_full_excel(file_bytes: bytes, db: Session) -> Dict[str, Any]:
                 "detalles_errores": [f"Error al procesar hoja: {str(e)}"]
             })
 
-    mensaje = f"Procesamiento finalizado. {total_ins} registros cargados exitosamente." if total_ins > 0 else "No se pudieron insertar registros. Revise los detalles de error."
+    mensaje = f"Procesamiento finalizado. {total_ins} registros cargados exitosamente para {default_ente}." if total_ins > 0 else "No se pudieron insertar registros. Revise los detalles de error."
 
     return {
         "success": total_ins > 0,

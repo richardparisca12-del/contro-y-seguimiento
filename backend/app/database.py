@@ -48,3 +48,30 @@ def init_db():
     # Importar modelos para que Base.metadata los reconozca
     import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+
+    # Migración defensiva en caliente para bases de datos existentes en producción
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE funcionarios ADD COLUMN ente VARCHAR(100) NOT NULL DEFAULT 'MINISTERIO DE LA JUVENTUD'"))
+            conn.commit()
+        except Exception:
+            pass  # La columna ya existe
+
+        try:
+            conn.execute(text("CREATE INDEX idx_ente ON funcionarios (ente)"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
+            # Reemplazar índice único anterior por (cedula, categoria, ente)
+            conn.execute(text("ALTER TABLE funcionarios DROP INDEX idx_cedula_categoria"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
+            conn.execute(text("CREATE UNIQUE INDEX idx_cedula_categoria_ente ON funcionarios (cedula, categoria, ente)"))
+            conn.commit()
+        except Exception:
+            pass

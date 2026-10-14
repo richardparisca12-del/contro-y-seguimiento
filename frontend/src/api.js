@@ -32,7 +32,7 @@ export const authApi = {
 };
 
 export const statsApi = {
-  getStats: () => api.get('/api/stats'),
+  getStats: (params) => api.get('/api/stats', { params }),
 };
 
 export const funcionariosApi = {

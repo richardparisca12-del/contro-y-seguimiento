@@ -7,6 +7,7 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
   const [formData, setFormData] = useState({
     cedula: funcionario?.cedula || '',
     apellido_nombre: funcionario?.apellido_nombre || '',
+    ente: funcionario?.ente || 'MINISTERIO DE LA JUVENTUD',
     categoria: funcionario?.categoria || 'CONTRATADO',
     cargo: funcionario?.cargo || '',
     unidad_adscripcion: funcionario?.unidad_adscripcion || '',
@@ -190,6 +191,21 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                  ENTE INSTITUCIONAL *
+                </label>
+                <select
+                  className="select-control"
+                  value={formData.ente}
+                  onChange={(e) => handleChange('ente', e.target.value)}
+                  required
+                >
+                  <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
+                  <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
                   CATEGORÍA LABORAL *
                 </label>
                 <select
@@ -363,9 +379,22 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
                     {funcionario.cedula}
                   </div>
                 </div>
-                <span className={`badge-category badge-${funcionario.categoria.replace(/\s+/g, '-')}`}>
-                  {funcionario.categoria}
-                </span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '6px',
+                    background: (funcionario.ente === 'INJ') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                    color: (funcionario.ente === 'INJ') ? '#34d399' : '#93c5fd',
+                    border: (funcionario.ente === 'INJ') ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
+                    {funcionario.ente === 'INJ' ? '🏢 INJ (Instituto Nacional)' : '🏛️ Ministerio de la Juventud'}
+                  </span>
+                  <span className={`badge-category badge-${funcionario.categoria.replace(/\s+/g, '-')}`}>
+                    {funcionario.categoria}
+                  </span>
+                </div>
               </div>
               <div style={{ marginTop: '8px', fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
                 {funcionario.apellido_nombre}

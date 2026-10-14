@@ -70,6 +70,7 @@ export default function FuncionariosTable({
               <th style={{ width: '50px' }}>N°</th>
               <th>Cédula</th>
               <th>Funcionario</th>
+              <th>Ente</th>
               <th>Categoría</th>
               <th>Cargo</th>
               <th>Unidad de Adscripción</th>
@@ -82,7 +83,7 @@ export default function FuncionariosTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                <td colSpan={11} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                     <div className="pulse-indicator"></div>
                     <span>Cargando registros del personal...</span>
@@ -91,7 +92,7 @@ export default function FuncionariosTable({
               </tr>
             ) : funcionarios.length === 0 ? (
               <tr>
-                <td colSpan={10} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
+                <td colSpan={11} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
                   <UserX size={36} color="var(--text-dim)" style={{ marginBottom: '8px' }} />
                   <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
                     No se encontraron funcionarios
@@ -116,6 +117,20 @@ export default function FuncionariosTable({
                   </td>
                   <td style={{ fontWeight: 600, color: '#ffffff' }}>
                     {item.apellido_nombre}
+                  </td>
+                  <td>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      whiteSpace: 'nowrap',
+                      background: item.ente === 'INJ' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                      color: item.ente === 'INJ' ? '#34d399' : '#93c5fd',
+                      border: item.ente === 'INJ' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)'
+                    }}>
+                      {item.ente === 'INJ' ? '🏢 INJ' : '🏛️ MinJuventud'}
+                    </span>
                   </td>
                   <td>
                     <span className={getBadgeClass(item.categoria)}>

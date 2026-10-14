@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.importer import process_full_excel
@@ -11,6 +11,7 @@ router = APIRouter(prefix="/api/upload", tags=["Carga Masiva"])
 @router.post("", response_model=ImportResponse)
 async def upload_excel(
     file: UploadFile = File(...),
+    ente: str = Form("MINISTERIO DE LA JUVENTUD"),
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user)
 ):
@@ -22,7 +23,7 @@ async def upload_excel(
 
     try:
         contents = await file.read()
-        res = process_full_excel(contents, db)
+        res = process_full_excel(contents, db, default_ente=ente)
         return res
     except Exception as e:
         raise HTTPException(

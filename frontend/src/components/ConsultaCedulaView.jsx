@@ -434,7 +434,18 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
               marginBottom: '20px'
             }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    background: currentReg.ente === 'INJ' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                    border: currentReg.ente === 'INJ' ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(59, 130, 246, 0.4)',
+                    color: currentReg.ente === 'INJ' ? '#34d399' : '#93c5fd'
+                  }}>
+                    {currentReg.ente === 'INJ' ? '🏢 INJ' : '🏛️ MinJuventud'}
+                  </span>
                   <span style={{
                     fontSize: '0.72rem',
                     fontWeight: 700,
@@ -455,7 +466,7 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
                 </h3>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   {currentReg.cargo && <span>{currentReg.cargo} • </span>}
-                  <span>{currentReg.unidad_adscripcion || 'MINJUVENTUD'}</span>
+                  <span>{currentReg.unidad_adscripcion || (currentReg.ente === 'INJ' ? 'INSTITUTO NACIONAL DE LA JUVENTUD' : 'MINISTERIO DE LA JUVENTUD')}</span>
                 </div>
               </div>
 
@@ -494,7 +505,7 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
                         color: selectedIdx === i ? '#93c5fd' : 'var(--text-muted)'
                       }}
                     >
-                      {r.categoria} ({r.cargo || 'Funcionario'})
+                      {r.ente === 'INJ' ? '🏢 INJ' : '🏛️ MinJuventud'} - {r.categoria} ({r.cargo || 'Funcionario'})
                     </button>
                   ))}
                 </div>

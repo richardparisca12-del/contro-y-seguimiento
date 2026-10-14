@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, UploadCloud, FileSpreadsheet, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, UploadCloud, FileSpreadsheet, CheckCircle2, AlertTriangle, AlertCircle, RefreshCw, Building2, Landmark } from 'lucide-react';
 import { uploadApi } from '../api';
 
 export default function UploadModal({ onClose, onSuccess }) {
   const [file, setFile] = useState(null);
+  const [ente, setEnte] = useState('MINISTERIO DE LA JUVENTUD');
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -49,6 +50,7 @@ export default function UploadModal({ onClose, onSuccess }) {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('ente', ente);
 
     try {
       const response = await uploadApi.uploadExcel(formData);
@@ -153,6 +155,94 @@ export default function UploadModal({ onClose, onSuccess }) {
           {/* Formulario de Carga */}
           {!result && (
             <form onSubmit={handleSubmit}>
+              {/* Selector de Ente Institucional */}
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
+                }}>
+                  Seleccione el Ente correspondiente al archivo Excel:
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div
+                    onClick={() => setEnte('MINISTERIO DE LA JUVENTUD')}
+                    style={{
+                      border: ente === 'MINISTERIO DE LA JUVENTUD' ? '2px solid #3b82f6' : '1px solid var(--border-color)',
+                      background: ente === 'MINISTERIO DE LA JUVENTUD' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                      padding: '12px 14px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#60a5fa'
+                    }}>
+                      <Landmark size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
+                        Ministerio de la Juventud
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        Nómina Ministerial Directa
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => setEnte('INJ')}
+                    style={{
+                      border: ente === 'INJ' ? '2px solid #10b981' : '1px solid var(--border-color)',
+                      background: ente === 'INJ' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                      padding: '12px 14px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#34d399'
+                    }}>
+                      <Building2 size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
+                        INJ (Instituto Nacional)
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        Ente Adscrito
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}

@@ -3,7 +3,7 @@
 .env.production
 backend/.env
 *.env.local
-
+.env.docker
 
 # Python
 __pycache__/

@@ -28,6 +28,7 @@ export default function App() {
 
   const [stats, setStats] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
+    entes: [],
     categorias: [],
     estados: [],
     municipios: [],
@@ -37,6 +38,7 @@ export default function App() {
 
   const [filters, setFilters] = useState({
     search: '',
+    ente: '',
     categoria: '',
     estado: '',
     municipio: '',
@@ -92,7 +94,7 @@ export default function App() {
     if (!isAuthenticated || currentView !== 'analytics') return;
     try {
       const [statsRes, filtersRes] = await Promise.all([
-        statsApi.getStats(),
+        statsApi.getStats(filters.ente ? { ente: filters.ente } : undefined),
         funcionariosApi.getFilterOptions()
       ]);
       setStats(statsRes.data);
@@ -100,7 +102,7 @@ export default function App() {
     } catch (err) {
       console.error('Error al cargar estadísticas o filtros:', err);
     }
-  }, [isAuthenticated, currentView]);
+  }, [isAuthenticated, currentView, filters.ente]);
 
   useEffect(() => {
     if (isAuthenticated && currentView === 'analytics') {
@@ -117,6 +119,7 @@ export default function App() {
         page,
         page_size: pageSize,
         search: filters.search || undefined,
+        ente: filters.ente || undefined,
         categoria: filters.categoria || undefined,
         estado: filters.estado || undefined,
         municipio: filters.municipio || undefined,
@@ -152,10 +155,16 @@ export default function App() {
     handleFilterChange('categoria', catName);
   };
 
+  // Manejador de selección de Ente desde los tabs superiores
+  const handleSelectEnte = (enteName) => {
+    handleFilterChange('ente', enteName);
+  };
+
   // Restablecer filtros
   const handleResetFilters = () => {
     setFilters({
       search: '',
+      ente: '',
       categoria: '',
       estado: '',
       municipio: '',
@@ -172,6 +181,7 @@ export default function App() {
         page: 1,
         page_size: 10000,
         search: filters.search || undefined,
+        ente: filters.ente || undefined,
         categoria: filters.categoria || undefined,
         estado: filters.estado || undefined,
         municipio: filters.municipio || undefined,
@@ -194,6 +204,7 @@ export default function App() {
         page: 1,
         page_size: 10000,
         search: filters.search || undefined,
+        ente: filters.ente || undefined,
         categoria: filters.categoria || undefined,
         estado: filters.estado || undefined,
         municipio: filters.municipio || undefined,
@@ -261,11 +272,13 @@ export default function App() {
       />
 
       <main className="container" style={{ flex: 1, paddingBottom: '40px' }}>
-        {/* Tarjetas de Métricas por Categoría */}
+        {/* Tarjetas de Métricas por Categoría y Ente */}
         <StatsCards
           stats={stats}
           selectedCategoria={filters.categoria}
           onSelectCategoria={handleSelectCategoria}
+          selectedEnte={filters.ente}
+          onSelectEnte={handleSelectEnte}
         />
 
         {/* Gráficos de Distribución */}

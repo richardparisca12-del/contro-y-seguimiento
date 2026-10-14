@@ -104,6 +104,29 @@ export default function FiltersBar({
           />
         </div>
 
+        {/* Filtro Ente Institucional */}
+        <div>
+          <select
+            className="select-control"
+            value={filters.ente || ''}
+            onChange={(e) => onFilterChange('ente', e.target.value)}
+            style={{
+              fontWeight: filters.ente ? 700 : 400,
+              borderColor: filters.ente ? '#3b82f6' : undefined,
+              background: filters.ente ? 'rgba(59, 130, 246, 0.12)' : undefined
+            }}
+          >
+            <option value="">Todos los Entes (Ministerio e INJ)</option>
+            <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
+            <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
+            {(filterOptions.entes || [])
+              .filter(e => e !== 'MINISTERIO DE LA JUVENTUD' && e !== 'INJ')
+              .map((ente) => (
+                <option key={ente} value={ente}>{ente}</option>
+              ))}
+          </select>
+        </div>
+
         {/* Filtro Categoría */}
         <div>
           <select

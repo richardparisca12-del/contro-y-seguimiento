@@ -15,6 +15,7 @@ class Token(BaseModel):
 class FuncionarioBase(BaseModel):
     cedula: str
     categoria: str
+    ente: Optional[str] = "MINISTERIO DE LA JUVENTUD"
     apellido_nombre: str
     cargo: Optional[str] = None
     unidad_adscripcion: Optional[str] = None
@@ -32,6 +33,7 @@ class FuncionarioCreate(FuncionarioBase):
 class FuncionarioUpdate(BaseModel):
     cedula: Optional[str] = None
     categoria: Optional[str] = None
+    ente: Optional[str] = None
     apellido_nombre: Optional[str] = None
     cargo: Optional[str] = None
     unidad_adscripcion: Optional[str] = None
@@ -92,11 +94,13 @@ class GeoStat(BaseModel):
 class StatsResponse(BaseModel):
     total_funcionarios: int
     por_categoria: List[CategoryStat]
+    por_ente: Optional[List[CategoryStat]] = []
     top_estados: List[GeoStat]
     top_unidades: List[GeoStat]
 
 
 class FilterOptions(BaseModel):
+    entes: List[str] = []
     categorias: List[str]
     estados: List[str]
     municipios: List[str]
@@ -113,6 +117,7 @@ class FuncionarioConsultaItem(BaseModel):
     cedula: str
     apellido_nombre: str
     categoria: str
+    ente: Optional[str] = "MINISTERIO DE LA JUVENTUD"
     cargo: Optional[str] = None
     unidad_adscripcion: Optional[str] = None
     estado: Optional[str] = None

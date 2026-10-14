@@ -15,6 +15,7 @@ def get_funcionarios(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=1000),
     search: Optional[str] = Query(None, description="Búsqueda por cédula o nombre"),
+    ente: Optional[str] = Query(None, description="Filtrar por ente (Ministerio o INJ)"),
     categoria: Optional[str] = Query(None),
     estado: Optional[str] = Query(None),
     municipio: Optional[str] = Query(None),
@@ -35,6 +36,8 @@ def get_funcionarios(
             )
         )
 
+    if ente:
+        query = query.filter(Funcionario.ente == ente)
     if categoria:
         query = query.filter(Funcionario.categoria == categoria)
     if estado:
@@ -49,7 +52,7 @@ def get_funcionarios(
     total = query.count()
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
-    records = query.order_by(Funcionario.categoria, Funcionario.numero_orden, Funcionario.apellido_nombre)\
+    records = query.order_by(Funcionario.ente, Funcionario.categoria, Funcionario.numero_orden, Funcionario.apellido_nombre)\
                    .offset((page - 1) * page_size)\
                    .limit(page_size)\
                    .all()
@@ -69,6 +72,21 @@ def get_filter_options(
     _user: dict = Depends(get_current_user)
 ):
     """Devuelve listas únicas para llenar selectores de filtros."""
+    db_entes = [
+        row[0] for row in db.query(distinct(Funcionario.ente))
+        .filter(Funcionario.ente.isnot(None), Funcionario.ente != "")
+        .order_by(Funcionario.ente).all()
+    ]
+    # Asegurar entes base oficiales
+    base_entes = ["MINISTERIO DE LA JUVENTUD", "INJ"]
+    entes_set = []
+    for e in base_entes:
+        if e not in entes_set:
+            entes_set.append(e)
+    for e in db_entes:
+        if e and e not in entes_set:
+            entes_set.append(e)
+
     categorias = [
         row[0] for row in db.query(distinct(Funcionario.categoria))
         .filter(Funcionario.categoria.isnot(None))
@@ -96,6 +114,7 @@ def get_filter_options(
     ]
 
     return {
+        "entes": entes_set,
         "categorias": categorias,
         "estados": estados,
         "municipios": municipios,
@@ -122,20 +141,24 @@ def create_funcionario(
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user)
 ):
-    # Verificar si ya existe con esa cédula y categoría
+    ente_valor = (payload.ente or "MINISTERIO DE LA JUVENTUD").strip().upper()
+
+    # Verificar si ya existe con esa cédula, categoría y ente
     existente = db.query(Funcionario).filter(
         Funcionario.cedula == payload.cedula.strip().upper(),
-        Funcionario.categoria == payload.categoria
+        Funcionario.categoria == payload.categoria,
+        Funcionario.ente == ente_valor
     ).first()
     if existente:
         raise HTTPException(
             status_code=400,
-            detail=f"Ya existe un funcionario registrado con cédula {payload.cedula} en la categoría {payload.categoria}."
+            detail=f"Ya existe un funcionario registrado con cédula {payload.cedula} en {ente_valor} (Categoría: {payload.categoria})."
         )
 
     nuevo = Funcionario(
         cedula=payload.cedula.strip().upper(),
         categoria=payload.categoria,
+        ente=ente_valor,
         apellido_nombre=payload.apellido_nombre.strip().upper(),
         cargo=payload.cargo.strip().upper() if payload.cargo else None,
         unidad_adscripcion=payload.unidad_adscripcion.strip().upper() if payload.unidad_adscripcion else None,

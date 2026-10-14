@@ -12,6 +12,7 @@ export const exportToExcel = (data, filename = 'Reporte_Personal_MinJuventud.xls
     'N°': item.numero_orden || (index + 1),
     'CÉDULA': item.cedula,
     'APELLIDO Y NOMBRE': item.apellido_nombre,
+    'ENTE': item.ente || 'MINISTERIO DE LA JUVENTUD',
     'CATEGORÍA': item.categoria,
     'CARGO': item.cargo || '',
     'UNIDAD DE ADSCRIPCIÓN': item.unidad_adscripcion || '',
@@ -28,6 +29,7 @@ export const exportToExcel = (data, filename = 'Reporte_Personal_MinJuventud.xls
     { wch: 6 },  // N°
     { wch: 14 }, // Cédula
     { wch: 34 }, // Nombre
+    { wch: 22 }, // Ente
     { wch: 16 }, // Categoría
     { wch: 30 }, // Cargo
     { wch: 36 }, // Unidad
@@ -84,6 +86,7 @@ export const exportToPdf = (data, activeFilters = {}, totalGeneral = 0) => {
   doc.text(`REPORTE DE FUNCIONARIOS (Total mostrados: ${data.length}${totalGeneral ? ` de ${totalGeneral}` : ''})`, 30, 82);
 
   let filterSummary = [];
+  if (activeFilters.ente) filterSummary.push(`Ente: ${activeFilters.ente}`);
   if (activeFilters.categoria) filterSummary.push(`Categoría: ${activeFilters.categoria}`);
   if (activeFilters.estado) filterSummary.push(`Estado: ${activeFilters.estado}`);
   if (activeFilters.municipio) filterSummary.push(`Municipio: ${activeFilters.municipio}`);
@@ -98,16 +101,16 @@ export const exportToPdf = (data, activeFilters = {}, totalGeneral = 0) => {
   doc.text(filterText, 30, 96);
 
   // Tabla
-  const headers = [['N°', 'CÉDULA', 'APELLIDO Y NOMBRE', 'CATEGORÍA', 'CARGO', 'UNIDAD ADSCRIPCIÓN', 'ESTADO', 'MUNICIPIO']];
+  const headers = [['N°', 'CÉDULA', 'APELLIDO Y NOMBRE', 'ENTE', 'CATEGORÍA', 'CARGO', 'UNIDAD ADSCRIPCIÓN', 'ESTADO']];
   const tableData = data.map((item, index) => [
     item.numero_orden || (index + 1),
     item.cedula,
     item.apellido_nombre,
+    item.ente === 'INJ' ? 'INJ' : 'MinJuventud',
     item.categoria,
     item.cargo || '---',
     item.unidad_adscripcion || '---',
-    item.estado || '---',
-    item.municipio || '---'
+    item.estado || '---'
   ]);
 
   autoTable(doc, {

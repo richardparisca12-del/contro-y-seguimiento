@@ -6,6 +6,7 @@ export default function CreateFuncionarioModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     cedula: '',
     apellido_nombre: '',
+    ente: 'MINISTERIO DE LA JUVENTUD',
     categoria: 'CONTRATADO',
     cargo: '',
     unidad_adscripcion: '',
@@ -122,6 +123,21 @@ export default function CreateFuncionarioModal({ onClose, onSuccess }) {
                 onChange={(e) => handleChange('cedula', e.target.value)}
                 required
               />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                ENTE INSTITUCIONAL *
+              </label>
+              <select
+                className="select-control"
+                value={formData.ente}
+                onChange={(e) => handleChange('ente', e.target.value)}
+                required
+              >
+                <option value="MINISTERIO DE LA JUVENTUD">🏛️ MINISTERIO DE LA JUVENTUD</option>
+                <option value="INJ">🏢 INJ (INSTITUTO NACIONAL)</option>
+              </select>
             </div>
 
             <div>

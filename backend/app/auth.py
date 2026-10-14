@@ -15,7 +15,7 @@ import hmac
 import time
 from collections import defaultdict
 
-SYSTEM_PASSWORD = os.getenv("SYSTEM_PASSWORD", "Minj2026!")
+SYSTEM_PASSWORD = os.getenv("SYSTEM_PASSWORD", "MinJuv#2026!Secured#AnalyticsKey")
 
 # Registro de intentos fallidos de autenticación por IP (Protección contra fuerza bruta en producción)
 _login_failed_attempts = defaultdict(list)
