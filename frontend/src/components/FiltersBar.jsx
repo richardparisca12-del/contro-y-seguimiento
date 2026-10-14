@@ -134,6 +134,7 @@ export default function FiltersBar({
             <option value="CONFIANZA">CONFIANZA</option>
             <option value="COMISION">COMISION</option>
             <option value="CONTRATADO">CONTRATADO</option>
+            <option value="OBRERO">OBRERO</option>
           </select>
         </div>
 

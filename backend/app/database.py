@@ -52,6 +52,17 @@ def init_db():
     # Migración defensiva en caliente para bases de datos existentes en producción
     with engine.connect() as conn:
         try:
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN categoria VARCHAR(50) NOT NULL"))
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN cedula VARCHAR(30) NOT NULL"))
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN apellido_nombre VARCHAR(250) NOT NULL"))
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN cargo VARCHAR(300)"))
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN unidad_adscripcion VARCHAR(350)"))
+            conn.execute(text("ALTER TABLE funcionarios MODIFY COLUMN centro_votacion VARCHAR(500)"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
             conn.execute(text("ALTER TABLE funcionarios ADD COLUMN ente VARCHAR(100) NOT NULL DEFAULT 'MINISTERIO DE LA JUVENTUD'"))
             conn.commit()
         except Exception:
