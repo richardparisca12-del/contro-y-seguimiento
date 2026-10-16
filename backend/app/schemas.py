@@ -42,10 +42,14 @@ class FuncionarioUpdate(BaseModel):
     parroquia: Optional[str] = None
     centro_votacion: Optional[str] = None
     numero_orden: Optional[int] = None
+    participo_consulta: Optional[bool] = None
+    fecha_hora_voto: Optional[datetime] = None
 
 
 class FuncionarioResponse(FuncionarioBase):
     id: int
+    participo_consulta: Optional[bool] = False
+    fecha_hora_voto: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -124,6 +128,8 @@ class FuncionarioConsultaItem(BaseModel):
     municipio: Optional[str] = None
     parroquia: Optional[str] = None
     centro_votacion: Optional[str] = None
+    participo_consulta: Optional[bool] = False
+    fecha_hora_voto: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -141,4 +147,5 @@ class ConsultaUpdateRequest(BaseModel):
     municipio: Optional[str] = None
     parroquia: Optional[str] = None
     centro_votacion: Optional[str] = None
+    confirma_voto: Optional[bool] = None
 

@@ -154,10 +154,12 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
         estado: updated.estado,
         municipio: updated.municipio,
         parroquia: updated.parroquia,
-        centro_votacion: updated.centro_votacion
+        centro_votacion: updated.centro_votacion,
+        participo_consulta: true,
+        fecha_hora_voto: updated.fecha_hora_voto
       };
       setRegistros(updatedList);
-      setSuccessMsg('¡Datos de votación actualizados exitosamente en la base de datos!');
+      setSuccessMsg('¡Participación registrada y centro de votación actualizado exitosamente en el sistema!');
       
       // Desplazar suavemente hacia arriba
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -166,6 +168,44 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
         setErrorMsg(err.response.data.detail);
       } else {
         setErrorMsg('Error al guardar los datos electorales.');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmarVotoDirecto = async () => {
+    if (!registros || !registros[selectedIdx]) return;
+    setSaving(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    const targetId = registros[selectedIdx].id;
+    try {
+      const response = await consultaApi.actualizarDatosElectorales(targetId, {
+        ...formData,
+        confirma_voto: true,
+        centro_votacion: formData.centro_votacion || registros[selectedIdx].centro_votacion || 'CONFIRMADO'
+      });
+      const updated = response.data;
+      const updatedList = [...registros];
+      updatedList[selectedIdx] = {
+        ...updatedList[selectedIdx],
+        estado: updated.estado,
+        municipio: updated.municipio,
+        parroquia: updated.parroquia,
+        centro_votacion: updated.centro_votacion,
+        participo_consulta: true,
+        fecha_hora_voto: updated.fecha_hora_voto
+      };
+      setRegistros(updatedList);
+      setSuccessMsg('¡Voto confirmado exitosamente! Su participación ha sido registrada en el reporte horario.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.detail) {
+        setErrorMsg(err.response.data.detail);
+      } else {
+        setErrorMsg('Error al registrar el voto.');
       }
     } finally {
       setSaving(false);
@@ -517,6 +557,122 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
               </div>
             )}
 
+            {/* BLOQUE DESTACADO DE PARTICIPACIÓN / CONFIRMACIÓN DE VOTO */}
+            {currentReg.participo_consulta ? (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.28) 100%)',
+                border: '1.5px solid #10b981',
+                borderRadius: '14px',
+                padding: '16px 20px',
+                marginBottom: '22px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    background: 'rgba(16, 185, 129, 0.25)',
+                    padding: '8px',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <CheckCircle2 size={26} color="#34d399" />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, color: '#34d399', fontSize: '1rem', letterSpacing: '-0.01em' }}>
+                      ¡PARTICIPACIÓN CONFIRMADA EN LA CONSULTA!
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#a7f3d0', marginTop: '2px' }}>
+                      {currentReg.fecha_hora_voto ? (
+                        <span>Voto registrado el: {new Date(currentReg.fecha_hora_voto).toLocaleString('es-VE')}</span>
+                      ) : (
+                        <span>Voto registrado y computado en el reporte oficial por horas</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <span style={{
+                  background: '#047857',
+                  color: '#ffffff',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <CheckCircle2 size={14} />
+                  <span>YA VOTÓ</span>
+                </span>
+              </div>
+            ) : (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.28) 100%)',
+                border: '1.5px solid #f59e0b',
+                borderRadius: '14px',
+                padding: '18px 22px',
+                marginBottom: '22px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    background: 'rgba(245, 158, 11, 0.25)',
+                    padding: '10px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Vote size={28} color="#fbbf24" />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, color: '#fbbf24', fontSize: '1.05rem' }}>
+                      ¿Ya participó en la Consulta Popular?
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#fef3c7', marginTop: '3px' }}>
+                      Presione el botón para registrar su voto de inmediato con la hora oficial exacta.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmarVotoDirecto}
+                  disabled={saving}
+                  style={{
+                    background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '12px 24px',
+                    fontSize: '0.96rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 16px rgba(5, 150, 105, 0.45)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <CheckCircle2 size={20} />
+                  <span>¡CONFIRMAR QUE YA VOTÉ!</span>
+                </button>
+              </div>
+            )}
+
             {/* FORMULARIO DE EDICIÓN EXCLUSIVA: ESTADO, MUNICIPIO, PARROQUIA, CENTRO DE VOTACIÓN */}
             <form onSubmit={handleGuardarCambios}>
               <div style={{
@@ -651,11 +807,16 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
                   disabled={saving}
                 >
                   {saving ? (
-                    <span>Guardando cambios...</span>
-                  ) : (
+                    <span>Guardando...</span>
+                  ) : currentReg.participo_consulta ? (
                     <>
                       <Save size={18} />
-                      <span>Guardar Cambios</span>
+                      <span>Actualizar Datos</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={18} />
+                      <span>Guardar y Confirmar Voto</span>
                     </>
                   )}
                 </button>
@@ -664,50 +825,16 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
           </div>
         )}
 
-        {/* Footer Institucional con Acceso Administrativo Discreto */}
+        {/* Footer Institucional */}
         <div style={{
           marginTop: '28px',
           paddingTop: '16px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
+          textAlign: 'center'
         }}>
           <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
             Ministerio del Poder Popular para la Juventud © {new Date().getFullYear()}
           </span>
-
-          {/* Enlace discreto para administradores de personal (sin botón 'Analytics' en pantalla principal) */}
-          <button
-            type="button"
-            onClick={onGoToAdmin}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-dim)',
-              fontSize: '0.72rem',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 6px',
-              borderRadius: '4px',
-              transition: 'color 0.2s ease',
-              opacity: 0.65
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#93c5fd';
-              e.currentTarget.style.opacity = '1';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-dim)';
-              e.currentTarget.style.opacity = '0.65';
-            }}
-            title="Acceso seguro al panel de gestión institucional"
-          >
-            <Lock size={12} />
-            <span>Acceso Administrativo</span>
-          </button>
         </div>
       </div>
     </div>

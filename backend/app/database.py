@@ -102,3 +102,27 @@ def init_db():
             conn.commit()
         except Exception:
             pass
+
+        try:
+            conn.execute(text("ALTER TABLE funcionarios ADD COLUMN participo_consulta TINYINT(1) NOT NULL DEFAULT 0"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
+            conn.execute(text("ALTER TABLE funcionarios ADD COLUMN fecha_hora_voto DATETIME NULL"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
+            conn.execute(text("CREATE INDEX idx_participo_consulta ON funcionarios (participo_consulta)"))
+            conn.commit()
+        except Exception:
+            pass
+
+        try:
+            conn.execute(text("CREATE INDEX idx_fecha_hora_voto ON funcionarios (fecha_hora_voto)"))
+            conn.commit()
+        except Exception:
+            pass

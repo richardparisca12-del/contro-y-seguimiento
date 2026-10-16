@@ -2,7 +2,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import init_db
-from app.routers import auth, funcionarios, stats, upload, consulta
+from app.routers import auth, funcionarios, stats, upload, consulta, reportes
+from app.services.scheduler import iniciar_scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("minjuventud-api")
@@ -28,6 +29,7 @@ app.include_router(auth.router)
 app.include_router(funcionarios.router)
 app.include_router(stats.router)
 app.include_router(upload.router)
+app.include_router(reportes.router)
 
 
 @app.on_event("startup")
@@ -38,6 +40,7 @@ def startup_event():
         try:
             init_db()
             logger.info("Base de datos y tablas inicializadas correctamente.")
+            iniciar_scheduler()
             return
         except Exception as e:
             logger.warning(f"Intento {attempt}/10 de conexión a MySQL: {e}. Reintentando en 2s...")

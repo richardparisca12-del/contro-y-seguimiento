@@ -48,6 +48,11 @@ yarn-error.log*
 data/
 minjuventud_mysql_data/
 
+# Archivos de reportes generados
+*.xlsx
+reportes_horarios/
+backend/reportes_horarios/
+
 # IDE y Sistema
 .vscode/
 .idea/
@@ -55,3 +60,4 @@ minjuventud_mysql_data/
 *.swo
 .DS_Store
 Thumbs.db
+

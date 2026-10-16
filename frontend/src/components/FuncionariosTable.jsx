@@ -77,13 +77,14 @@ export default function FuncionariosTable({
               <th>Estado</th>
               <th>Municipio</th>
               <th>Parroquia</th>
+              <th style={{ textAlign: 'center' }}>Voto Consulta</th>
               <th style={{ textAlign: 'center' }}>Detalle</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={11} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                <td colSpan={12} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
                     <div className="pulse-indicator"></div>
                     <span>Cargando registros del personal...</span>
@@ -92,7 +93,7 @@ export default function FuncionariosTable({
               </tr>
             ) : funcionarios.length === 0 ? (
               <tr>
-                <td colSpan={11} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
+                <td colSpan={12} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-muted)' }}>
                   <UserX size={36} color="var(--text-dim)" style={{ marginBottom: '8px' }} />
                   <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)' }}>
                     No se encontraron funcionarios
@@ -164,6 +165,35 @@ export default function FuncionariosTable({
                   </td>
                   <td style={{ color: 'var(--text-dim)', fontSize: '0.82rem' }}>
                     {item.parroquia || '---'}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    {item.participo_consulta ? (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        color: '#34d399',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }} title={item.fecha_hora_voto ? `Votó el: ${new Date(item.fecha_hora_voto).toLocaleString()}` : 'Participación confirmada'}>
+                        ✓ Votó {item.fecha_hora_voto ? new Date(item.fecha_hora_voto).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    ) : (
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        color: 'var(--text-dim)'
+                      }}>
+                        Pendiente
+                      </span>
+                    )}
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     <button

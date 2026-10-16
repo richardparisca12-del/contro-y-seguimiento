@@ -72,6 +72,31 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
     }
   };
 
+  const handleToggleVoto = async () => {
+    setSaving(true);
+    setError('');
+    setSuccessMsg('');
+    try {
+      const nuevoEstado = !funcionario.participo_consulta;
+      await funcionariosApi.update(funcionario.id, {
+        participo_consulta: nuevoEstado
+      });
+      setSuccessMsg(nuevoEstado ? '¡Voto registrado exitosamente con hora oficial!' : 'Registro de voto cancelado.');
+      funcionario.participo_consulta = nuevoEstado;
+      if (nuevoEstado) {
+        funcionario.fecha_hora_voto = new Date().toISOString();
+      } else {
+        funcionario.fecha_hora_voto = null;
+      }
+      if (onUpdated) onUpdated();
+      setTimeout(() => setSuccessMsg(''), 2500);
+    } catch (err) {
+      setError('Error al actualizar estado de participación.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '680px' }} onClick={(e) => e.stopPropagation()}>
@@ -513,6 +538,54 @@ export default function FuncionarioDetailModal({ funcionario, onClose, onUpdated
                 <div style={{ fontSize: '0.92rem', fontWeight: 700, color: funcionario.centro_votacion ? '#f8fafc' : '#fca5a5', marginTop: '4px' }}>
                   {funcionario.centro_votacion || '⚠️ Falta registrar centro de votación (Haga clic en "Editar Datos" arriba)'}
                 </div>
+              </div>
+
+              {/* Estado de Voto en la Consulta */}
+              <div style={{
+                marginTop: '12px',
+                background: funcionario.participo_consulta ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                border: funcionario.participo_consulta ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid var(--border-color)',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <CheckCircle2 size={20} color={funcionario.participo_consulta ? '#34d399' : 'var(--text-dim)'} />
+                  <div>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: funcionario.participo_consulta ? '#34d399' : '#cbd5e1' }}>
+                      {funcionario.participo_consulta ? '¡Participación en Consulta Registrada!' : 'Participación en Consulta Pendiente'}
+                    </div>
+                    {funcionario.fecha_hora_voto && (
+                      <div style={{ fontSize: '0.72rem', color: '#a7f3d0', marginTop: '2px' }}>
+                        Hora registrada: {new Date(funcionario.fecha_hora_voto).toLocaleString('es-VE')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleToggleVoto}
+                  disabled={saving}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: funcionario.participo_consulta ? '#ef4444' : '#059669',
+                    color: '#ffffff',
+                    transition: 'opacity 0.2s'
+                  }}
+                  title={funcionario.participo_consulta ? 'Desmarcar participación de este funcionario' : 'Registrar participación con hora oficial actual'}
+                >
+                  {funcionario.participo_consulta ? 'Desmarcar Voto' : 'Marcar como Votó'}
+                </button>
               </div>
             </div>
 

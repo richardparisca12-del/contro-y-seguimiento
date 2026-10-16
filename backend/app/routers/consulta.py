@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.database import get_db
 from app.models import Funcionario
@@ -139,7 +139,17 @@ def actualizar_datos_electorales(
         funcionario.parroquia = payload.parroquia.strip().upper() if payload.parroquia.strip() else None
 
     if payload.centro_votacion is not None:
-        funcionario.centro_votacion = payload.centro_votacion.strip().upper() if payload.centro_votacion.strip() else None
+        cv_clean = payload.centro_votacion.strip().upper() if payload.centro_votacion.strip() else None
+        funcionario.centro_votacion = cv_clean
+        if cv_clean:
+            funcionario.participo_consulta = True
+            if not funcionario.fecha_hora_voto:
+                funcionario.fecha_hora_voto = func.now()
+
+    if payload.confirma_voto:
+        funcionario.participo_consulta = True
+        if not funcionario.fecha_hora_voto:
+            funcionario.fecha_hora_voto = func.now()
 
     db.commit()
     db.refresh(funcionario)

@@ -56,4 +56,17 @@ export const consultaApi = {
   actualizarDatosElectorales: (id, data) => api.put(`/api/consulta/${id}`, data),
 };
 
+export const reportesApi = {
+  getResumenParticipacion: () => api.get('/api/reportes/consulta-stats-resumen'),
+  getHorariosDisponibles: () => api.get('/api/reportes/horarios-disponibles'),
+  generarCorteManual: (titulo) => api.post('/api/reportes/generar-corte-manual', null, { params: { titulo } }),
+  descargarExcelBlob: (ente, titulo) => api.get('/api/reportes/consulta-excel', {
+    params: { ente, titulo },
+    responseType: 'blob',
+  }),
+  descargarHorarioGuardadoBlob: (filename) => api.get(`/api/reportes/horarios/${filename}`, {
+    responseType: 'blob',
+  }),
+};
+
 export default api;

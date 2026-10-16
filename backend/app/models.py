@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Index
+from sqlalchemy import Column, Integer, String, DateTime, Index, Boolean
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -18,6 +18,8 @@ class Funcionario(Base):
     parroquia = Column(String(120))
     centro_votacion = Column(String(500))
     numero_orden = Column(Integer)
+    participo_consulta = Column(Boolean, default=False, nullable=False, server_default="0", index=True)
+    fecha_hora_voto = Column(DateTime(timezone=True), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -28,4 +30,6 @@ class Funcionario(Base):
         Index("idx_municipio", "municipio"),
         Index("idx_categoria", "categoria"),
         Index("idx_unidad", "unidad_adscripcion"),
+        Index("idx_participo_consulta", "participo_consulta"),
+        Index("idx_fecha_hora_voto", "fecha_hora_voto"),
     )

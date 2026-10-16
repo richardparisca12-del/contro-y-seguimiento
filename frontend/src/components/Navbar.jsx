@@ -1,6 +1,13 @@
-import { UploadCloud, LogOut, Vote, ArrowLeft, Trash2 } from 'lucide-react';
+import { UploadCloud, LogOut, Vote, ArrowLeft, Trash2, FileSpreadsheet } from 'lucide-react';
 
-export default function Navbar({ onOpenUpload, onOpenCreate, onOpenClearData, onLogout, onGoToConsulta }) {
+export default function Navbar({
+  onOpenUpload,
+  onOpenCreate,
+  onOpenClearData,
+  onOpenReporteHorario,
+  onLogout,
+  onGoToConsulta
+}) {
   return (
     <header style={{
       background: '#ffffff',
@@ -31,33 +38,17 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onOpenClearData, on
           />
 
           <div style={{ borderLeft: '1.5px solid #cbd5e1', paddingLeft: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h1 style={{
-                fontSize: '1.15rem',
-                color: '#07367E',
-                fontWeight: 800,
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em'
-              }}>
-                Panel de Analytics - Control de Personal
-              </h1>
-              <span style={{
-                fontSize: '0.68rem',
-                padding: '3px 8px',
-                borderRadius: '9999px',
-                background: '#ecfdf5',
-                color: '#047857',
-                border: '1px solid #a7f3d0',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                fontWeight: 700
-              }}>
-                <span className="pulse-indicator"></span>
-                MySQL Activo
-              </span>
-            </div>
-            <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+            <h1 style={{
+              fontSize: '1.15rem',
+              color: '#07367E',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              margin: 0
+            }}>
+              Panel de Analytics - Control de Personal
+            </h1>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500, marginTop: '2px', marginBottom: 0 }}>
               Ministerio del Poder Popular para la Juventud
             </p>
           </div>
@@ -88,6 +79,38 @@ export default function Navbar({ onOpenUpload, onOpenCreate, onOpenClearData, on
             >
               <ArrowLeft size={16} />
               <span>Consulta Cédula</span>
+            </button>
+          )}
+
+          {onOpenReporteHorario && (
+            <button
+              onClick={onOpenReporteHorario}
+              style={{
+                background: '#ecfdf5',
+                color: '#047857',
+                border: '1.5px solid #a7f3d0',
+                fontSize: '0.84rem',
+                padding: '9px 14px',
+                fontWeight: 700,
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#d1fae5';
+                e.currentTarget.style.borderColor = '#6ee7b7';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ecfdf5';
+                e.currentTarget.style.borderColor = '#a7f3d0';
+              }}
+              title="Descargar reporte oficial en Excel de participación por horas (Ministerio e INJ)"
+            >
+              <FileSpreadsheet size={16} />
+              <span>Reporte Horario Excel</span>
             </button>
           )}
 

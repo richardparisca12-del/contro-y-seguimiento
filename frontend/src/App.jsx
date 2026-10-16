@@ -8,6 +8,7 @@ import FuncionarioDetailModal from './components/FuncionarioDetailModal';
 import CreateFuncionarioModal from './components/CreateFuncionarioModal';
 import UploadModal from './components/UploadModal';
 import ClearDataModal from './components/ClearDataModal';
+import ReporteHorarioModal from './components/ReporteHorarioModal';
 import Login from './components/Login';
 import ConsultaCedulaView from './components/ConsultaCedulaView';
 import { statsApi, funcionariosApi } from './api';
@@ -18,14 +19,23 @@ export default function App() {
     return !!localStorage.getItem('minjuventud_token');
   });
 
-  // Vista activa: por defecto 'consulta' (requerimiento de pantalla principal sin botón analytics)
-  // Valores: 'consulta' | 'login' | 'analytics'
-  const [currentView, setCurrentView] = useState(() => {
-    if (window.location.hash === '#analytics' || window.location.hash === '#admin') {
+  const checkCurrentRoute = () => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const isAnalytics = path === '/analytics' || path.startsWith('/analytics/') || hash === '#analytics' || hash === '#admin';
+    const isLogin = path === '/login' || hash === '#login';
+
+    if (isAnalytics) {
       return localStorage.getItem('minjuventud_token') ? 'analytics' : 'login';
     }
+    if (isLogin) {
+      return 'login';
+    }
     return 'consulta';
-  });
+  };
+
+  // Vista activa: 'consulta' en / (sin enlaces a analytics), 'analytics' en /analytics
+  const [currentView, setCurrentView] = useState(checkCurrentRoute);
 
   const [stats, setStats] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
@@ -58,26 +68,20 @@ export default function App() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [reporteModalOpen, setReporteModalOpen] = useState(false);
   const [selectedFuncionario, setSelectedFuncionario] = useState(null);
 
-  // Listener para sincronizar hash de la URL (#analytics, #consulta, etc.)
+  // Listener para sincronizar URL (/analytics, /login, /, etc.)
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash === '#analytics' || hash === '#admin') {
-        if (localStorage.getItem('minjuventud_token')) {
-          setCurrentView('analytics');
-        } else {
-          setCurrentView('login');
-        }
-      } else if (hash === '#login') {
-        setCurrentView('login');
-      } else {
-        setCurrentView('consulta');
-      }
+    const handleUrlChange = () => {
+      setCurrentView(checkCurrentRoute());
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
   }, []);
 
   // Logout listener de api interceptor
@@ -85,7 +89,7 @@ export default function App() {
     const handleLogout = () => {
       setIsAuthenticated(false);
       setCurrentView('consulta');
-      window.location.hash = '';
+      window.history.pushState({}, '', '/');
     };
     window.addEventListener('auth-logout', handleLogout);
     return () => window.removeEventListener('auth-logout', handleLogout);
@@ -226,27 +230,27 @@ export default function App() {
     localStorage.removeItem('minjuventud_token');
     setIsAuthenticated(false);
     setCurrentView('consulta');
-    window.location.hash = '';
+    window.history.pushState({}, '', '/');
   };
 
   const handleGoToAdmin = () => {
     if (isAuthenticated) {
       setCurrentView('analytics');
-      window.location.hash = '#analytics';
+      window.history.pushState({}, '', '/analytics');
     } else {
       setCurrentView('login');
-      window.location.hash = '#login';
+      window.history.pushState({}, '', '/analytics');
     }
   };
 
   const handleBackToConsulta = () => {
     setCurrentView('consulta');
-    window.location.hash = '';
+    window.history.pushState({}, '', '/');
   };
 
-  // VISTA POR DEFECTO: Consulta pública y actualización electoral por cédula
+  // VISTA POR DEFECTO: Consulta pública y actualización electoral por cédula (sin enlace a analytics)
   if (currentView === 'consulta') {
-    return <ConsultaCedulaView onGoToAdmin={handleGoToAdmin} />;
+    return <ConsultaCedulaView />;
   }
 
   // VISTA DE LOGIN: Acceso seguro al Panel de Analytics
@@ -256,7 +260,7 @@ export default function App() {
         onLoginSuccess={() => {
           setIsAuthenticated(true);
           setCurrentView('analytics');
-          window.location.hash = '#analytics';
+          window.history.pushState({}, '', '/analytics');
         }}
         onBackToConsulta={handleBackToConsulta}
       />
@@ -270,6 +274,7 @@ export default function App() {
         onOpenUpload={() => setUploadModalOpen(true)}
         onOpenCreate={() => setCreateModalOpen(true)}
         onOpenClearData={() => setClearModalOpen(true)}
+        onOpenReporteHorario={() => setReporteModalOpen(true)}
         onLogout={handleLogout}
         onGoToConsulta={handleBackToConsulta}
       />
@@ -359,6 +364,11 @@ export default function App() {
           }}
         />
       )}
+      {/* Modal de Reporte Horario de Consulta (Excel) */}
+      <ReporteHorarioModal
+        isOpen={reporteModalOpen}
+        onClose={() => setReporteModalOpen(false)}
+      />
     </div>
   );
 }

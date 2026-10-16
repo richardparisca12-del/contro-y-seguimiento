@@ -207,6 +207,12 @@ def update_funcionario(
             value = value.strip().upper()
         setattr(funcionario, field, value)
 
+    if "participo_consulta" in update_data:
+        if update_data["participo_consulta"] and not funcionario.fecha_hora_voto:
+            funcionario.fecha_hora_voto = func.now()
+        elif not update_data["participo_consulta"]:
+            funcionario.fecha_hora_voto = None
+
     db.commit()
     db.refresh(funcionario)
     return funcionario
