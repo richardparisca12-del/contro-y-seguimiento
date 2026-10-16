@@ -1,5 +1,6 @@
 import os
 import io
+import logging
 from datetime import datetime
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, HTTPException, Response, status
@@ -16,6 +17,7 @@ from app.services.reporte_consulta_excel import (
 )
 from app.services.scheduler import obtener_estado_scheduler
 
+logger = logging.getLogger("minjuventud-reportes")
 router = APIRouter(prefix="/api/reportes", tags=["Reportes Electorales de Consulta"])
 
 CARPETA_REPORTES = os.path.abspath(
@@ -144,14 +146,24 @@ def descargar_reporte_horario_guardado(
     """
     Descarga un corte horario previamente generado y archivado.
     """
-    # Evitar directory traversal
+    # Evitar directory traversal y validar extensión
     safe_filename = os.path.basename(filename)
-    fpath = os.path.join(CARPETA_REPORTES, safe_filename)
-    if not os.path.exists(fpath):
+    if not safe_filename.lower().endswith(".xlsx"):
+        logger.warning(f"[PATH TRAVERSAL / BAD EXTENSION] Petición sospechosa de archivo: '{filename}'")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nombre o formato de reporte no válido."
+        )
+
+    fpath = os.path.abspath(os.path.join(CARPETA_REPORTES, safe_filename))
+    if not fpath.startswith(CARPETA_REPORTES) or not os.path.exists(fpath):
+        logger.warning(f"[FILE NOT FOUND / OUT OF BOUNDS] Intento de acceso a: '{safe_filename}'")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El reporte solicitado no existe o fue archivado."
         )
+
+    logger.info(f"[DOWNLOAD REPORT] Descarga de corte horario: {safe_filename}")
     return FileResponse(
         path=fpath,
         filename=safe_filename,
@@ -174,9 +186,10 @@ def generar_corte_manual_ahora(
     filepath = os.path.join(CARPETA_REPORTES, filename)
     wb.save(filepath)
 
+    logger.info(f"[MANUAL CORTE] Corte manual generado exitosamente: {filename}")
+
     return {
         "success": True,
         "mensaje": "Corte de reporte generado exitosamente.",
-        "archivo": filename,
-        "ruta": filepath
+        "archivo": filename
     }

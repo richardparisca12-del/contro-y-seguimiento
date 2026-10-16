@@ -143,6 +143,7 @@ class ConsultaResponse(BaseModel):
 
 
 class ConsultaUpdateRequest(BaseModel):
+    cedula: Optional[str] = None
     estado: Optional[str] = None
     municipio: Optional[str] = None
     parroquia: Optional[str] = None

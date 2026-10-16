@@ -142,9 +142,13 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
     setSuccessMsg('');
 
     const targetId = registros[selectedIdx].id;
+    const targetCedula = registros[selectedIdx].cedula;
 
     try {
-      const response = await consultaApi.actualizarDatosElectorales(targetId, formData);
+      const response = await consultaApi.actualizarDatosElectorales(targetId, {
+        ...formData,
+        cedula: targetCedula
+      });
       const updated = response.data;
       
       // Actualizar registro local
@@ -181,9 +185,11 @@ export default function ConsultaCedulaView({ onGoToAdmin }) {
     setSuccessMsg('');
 
     const targetId = registros[selectedIdx].id;
+    const targetCedula = registros[selectedIdx].cedula;
     try {
       const response = await consultaApi.actualizarDatosElectorales(targetId, {
         ...formData,
+        cedula: targetCedula,
         confirma_voto: true,
         centro_votacion: formData.centro_votacion || registros[selectedIdx].centro_votacion || 'CONFIRMADO'
       });

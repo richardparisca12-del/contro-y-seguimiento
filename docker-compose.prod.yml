@@ -33,6 +33,11 @@ services:
       DB_NAME: ${DB_NAME:-minjuventud}
       SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-MinJuv#2026!Secured#AnalyticsKey}
       SECRET_KEY: ${SECRET_KEY:-minjuventud_jwt_secret_key_prod_2026}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://consulta.minjuventud.gob.ve,http://consulta.minjuventud.gob.ve,http://localhost:3085,http://127.0.0.1:3085}
+      AUTO_REPORTE_FECHA_INICIO: ${AUTO_REPORTE_FECHA_INICIO:-2026-10-18 06:00:00}
+      AUTO_REPORTE_FECHA_FIN: ${AUTO_REPORTE_FECHA_FIN:-2026-10-19 00:00:00}
+    volumes:
+      - ./backend/reportes_horarios:/app/reportes_horarios
     ports:
       - "${BACKEND_PORT:-8005}:8000"
     depends_on:

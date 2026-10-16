@@ -1,5 +1,6 @@
 import re
 import time
+import logging
 from collections import defaultdict
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -9,6 +10,8 @@ from sqlalchemy import or_, func
 from app.database import get_db
 from app.models import Funcionario
 from app.schemas import ConsultaRequest, ConsultaResponse, FuncionarioConsultaItem, ConsultaUpdateRequest
+
+logger = logging.getLogger("minjuventud-consulta")
 
 router = APIRouter(prefix="/api/consulta", tags=["Consulta Pública de Cédula"])
 
@@ -23,6 +26,7 @@ def check_rate_limit(request: Request):
     # Limpiar timestamps mayores a 60s
     _request_counts[client_ip] = [t for t in _request_counts[client_ip] if now - t < 60]
     if len(_request_counts[client_ip]) >= MAX_CONSULTAS_PER_MINUTE:
+        logger.warning(f"[RATE-LIMIT ALARM] IP {client_ip} excedió el límite de {MAX_CONSULTAS_PER_MINUTE} consultas/min.")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Ha superado el límite de consultas permitidas por minuto. Por favor espere un momento."
@@ -121,12 +125,37 @@ def actualizar_datos_electorales(
     db: Session = Depends(get_db)
 ):
     check_rate_limit(request)
+    client_ip = request.client.host if request.client else "unknown"
+
     funcionario = db.query(Funcionario).filter(Funcionario.id == funcionario_id).first()
     if not funcionario:
+        logger.warning(f"[CONSULTA-PUT 404] Intento de actualización en funcionario inexistente ID {funcionario_id} desde IP {client_ip}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="El registro del funcionario no fue encontrado."
         )
+
+    # Verificación de integridad / Anti-IDOR: Si el cliente envía cédula, debe coincidir con el registro
+    if payload.cedula:
+        clean_input = re.sub(r'[\.,\s\-]', '', payload.cedula.strip().upper())
+        clean_target = re.sub(r'[\.,\s\-]', '', funcionario.cedula.strip().upper())
+        
+        # Comparar números o variantes
+        input_digits = re.search(r'\d+', clean_input)
+        target_digits = re.search(r'\d+', clean_target)
+        digits_match = (input_digits and target_digits and input_digits.group(0) == target_digits.group(0))
+
+        if clean_input != clean_target and not digits_match:
+            logger.warning(
+                f"[IDOR ALERT] Discrepancia de cédula para ID {funcionario_id}. "
+                f"Recibida: '{payload.cedula}', Registrada: '{funcionario.cedula}'. IP: {client_ip}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Acceso restringido: Los datos de identificación no corresponden a este registro."
+            )
+
+    logger.info(f"[AUDIT-UPDATE] Actualización autorizada para Funcionario ID {funcionario_id} (CI: {funcionario.cedula}) desde IP: {client_ip}")
 
     # Permitir ÚNICAMENTE modificar Estado, Municipio, Parroquia, Centro de Votación
     if payload.estado is not None:
